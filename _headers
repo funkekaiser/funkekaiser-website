@@ -1,0 +1,16 @@
+# Cloudflare Pages security headers — applied to every route.
+# Docs: https://developers.cloudflare.com/pages/configuration/headers/
+#
+# These three headers are safe and reversible: they only add browser-side
+# protections and cannot break how the site loads or looks.
+#
+# Intentionally NOT included here:
+#   - Strict-Transport-Security (HSTS): the "preload" form is near-permanent
+#     and hard to undo. If wanted, enable HSTS from the Cloudflare dashboard
+#     (SSL/TLS → Edge Certificates → HSTS), which is easy to turn back off.
+#   - Content-Security-Policy: powerful but can silently break resources if
+#     mis-tuned. Best added later in report-only mode first, then enforced.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), browsing-topics=()
