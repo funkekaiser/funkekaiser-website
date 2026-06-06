@@ -1,16 +1,40 @@
 # Cloudflare Pages security headers — applied to every route.
 # Docs: https://developers.cloudflare.com/pages/configuration/headers/
 #
-# These three headers are safe and reversible: they only add browser-side
-# protections and cannot break how the site loads or looks.
+# ── Notes ───────────────────────────────────────────────────────────────
+# HSTS: max-age is 1 year with includeSubDomains. NO "preload" token — that
+#   one is near-permanent (removal requires submitting to the browser
+#   preload list and waiting months). Add it only if you're 100% committed
+#   to HTTPS-only forever. To back out of HSTS, lower max-age (e.g. =0);
+#   browsers drop the policy on their next visit.
 #
-# Intentionally NOT included here:
-#   - Strict-Transport-Security (HSTS): the "preload" form is near-permanent
-#     and hard to undo. If wanted, enable HSTS from the Cloudflare dashboard
-#     (SSL/TLS → Edge Certificates → HSTS), which is easy to turn back off.
-#   - Content-Security-Policy: powerful but can silently break resources if
-#     mis-tuned. Best added later in report-only mode first, then enforced.
+# CSP: script-src pins the THREE inline <script> blocks by SHA-256 hash, so
+#   no 'unsafe-inline' is needed for scripts. IF YOU EDIT ANY INLINE SCRIPT
+#   (the IIFE in index.html / 404.html, or the year line in impressum.html),
+#   the page's JS will be blocked until you regenerate its hash. Regenerate:
+#
+#     python3 - <<'PY'
+#     import re,hashlib,base64
+#     for f in ["index.html","impressum.html","404.html"]:
+#         h=open(f,encoding="utf-8").read()
+#         for m in re.finditer(r'<script([^>]*)>(.*?)</script>',h,re.S):
+#             if "src=" in m.group(1) or "ld+json" in m.group(1): continue
+#             print(f, "'sha256-"+base64.b64encode(
+#                 hashlib.sha256(m.group(2).encode()).digest()).decode()+"'")
+#     PY
+#
+#   style-src keeps 'unsafe-inline' (the inlined <style> blocks are large and
+#   change often; hashing them is brittle and style injection is low-risk).
+#   static.cloudflareinsights.com / cloudflareinsights.com are required by
+#   Cloudflare Web Analytics (auto-injected) — removing them breaks analytics.
+#
+# To roll back CSP safely: rename the header to
+#   Content-Security-Policy-Report-Only
+# It then only logs violations to the browser console instead of blocking.
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), browsing-topics=()
+  X-Frame-Options: DENY
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self'; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-p12mdCC1b26v4I0hxshqSZD6wHiGdUJ9KefUkaT7MRE=' 'sha256-P6VhVxRwM9KXfb+I+jQV1R0ubd6GproPXbKNYc5fzmg=' 'sha256-VO4XPK9S020sabWP72Ql+pf7mcl8XoZqNJt7zSWaKmk=' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; upgrade-insecure-requests
