@@ -140,6 +140,20 @@
   }
   .note p { color: var(--text); }
 
+  /* ---------- fine grid texture ---------- */
+  .grid {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(color-mix(in oklch, currentColor 4%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklch, currentColor 4%, transparent) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(120% 120% at 50% 50%, #000 20%, transparent 80%);
+    mask-image: radial-gradient(120% 120% at 50% 50%, #000 20%, transparent 80%);
+  }
+
   footer {
     position: relative;
     z-index: 1;
@@ -160,6 +174,7 @@
 </style>
 </head>
 <body>
+  <div class="grid" aria-hidden="true"></div>
   <main id="main">
     <a class="back" href="index.html">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>

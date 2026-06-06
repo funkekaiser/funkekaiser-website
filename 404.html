@@ -71,6 +71,20 @@
     .bg-field { -webkit-mask-image: none; mask-image: none; opacity: calc(var(--glow) * 0.5); }
   }
 
+  /* ---------- fine grid texture ---------- */
+  .grid {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(color-mix(in oklch, currentColor 4%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in oklch, currentColor 4%, transparent) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(120% 120% at 50% 50%, #000 20%, transparent 80%);
+    mask-image: radial-gradient(120% 120% at 50% 50%, #000 20%, transparent 80%);
+  }
+
   /* ---------- layout ---------- */
   main {
     position: relative;
@@ -166,6 +180,7 @@
 <body>
   <div class="bg" aria-hidden="true">
     <div class="bg-field"></div>
+    <div class="grid"></div>
   </div>
 
   <main id="main">
