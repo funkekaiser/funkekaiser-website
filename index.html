@@ -140,6 +140,18 @@
     text-wrap: pretty;
   }
 
+  /* ---------- page-load entrance (auto-disabled under reduced-motion) ---------- */
+  .eyebrow, h1, .tagline, .link {
+    animation: fade-up 0.55s cubic-bezier(.2, .7, .3, 1) both;
+  }
+  .eyebrow { animation-delay: 0.04s; }
+  h1       { animation-delay: 0.12s; }
+  .tagline { animation-delay: 0.22s; }
+  .link:nth-child(1) { animation-delay: 0.34s; }
+  .link:nth-child(2) { animation-delay: 0.42s; }
+  .link:nth-child(3) { animation-delay: 0.50s; }
+  .link:nth-child(4) { animation-delay: 0.58s; }
+
   /* ---------- links ---------- */
   .links {
     display: grid;

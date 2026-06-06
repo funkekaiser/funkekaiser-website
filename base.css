@@ -111,3 +111,11 @@
   white-space: nowrap;
   border: 0;
 }
+
+/* ---------- page-load entrance ---------- */
+/* Used by both pages. The reduced-motion block above collapses the
+   duration to ~0, so content simply appears for those users. */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}

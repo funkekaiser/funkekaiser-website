@@ -61,6 +61,8 @@
     z-index: 1;
     max-width: 760px;
     padding: clamp(2.5rem, 7vw, 6rem) clamp(2rem, 7vw, 8rem) 5rem;
+    /* page-load entrance (auto-disabled under reduced-motion) */
+    animation: fade-up 0.55s cubic-bezier(.2, .7, .3, 1) both;
   }
 
   .back {
