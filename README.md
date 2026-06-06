@@ -22,7 +22,7 @@ Then open the reported URL (typically <http://localhost:3000>).
 
 ## Project structure
 - `index.html` – The entire page: structure, inlined styles, and the spotlight + copy scripts.
-- `cv.pdf` – CV linked from the page (opens in a new tab).
+- `Jonathan-Funke-Kaiser-CV.pdf` – CV linked from the page (opens in a new tab).
 - `images/` – Favicons and the social-share card (`og-card.png`).
 - `CNAME` – Custom domain (`funkekaiser.com`) for GitHub Pages.
 
