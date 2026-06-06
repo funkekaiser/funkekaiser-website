@@ -154,6 +154,12 @@
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: none; }
   }
+  /* opacity-free entrance for above-the-fold text so the LCP candidate
+     (h1) paints visible on the first frame — avoids mobile NO_LCP. */
+  @keyframes rise {
+    from { transform: translateY(10px); }
+    to   { transform: none; }
+  }
 
   /* ---------- page-specific ---------- */
   html, body { height: 100%; }
@@ -274,11 +280,15 @@
   }
 
   /* ---------- page-load entrance (auto-disabled under reduced-motion) ---------- */
-  .eyebrow, h1, .tagline, .link {
+  /* Above-the-fold text uses opacity-free `rise` so it (incl. the LCP h1)
+     paints visible on the first frame. Below-the-fold cards keep `fade-up`. */
+  .eyebrow, h1, .tagline {
+    animation: rise 0.55s cubic-bezier(.2, .7, .3, 1) both;
+  }
+  .link {
     animation: fade-up 0.55s cubic-bezier(.2, .7, .3, 1) both;
   }
   .eyebrow { animation-delay: 0.04s; }
-  h1       { animation-delay: 0.12s; }
   .tagline { animation-delay: 0.22s; }
   .link:nth-child(1) { animation-delay: 0.34s; }
   .link:nth-child(2) { animation-delay: 0.42s; }

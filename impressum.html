@@ -126,6 +126,12 @@
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: none; }
   }
+  /* opacity-free entrance so the heading (LCP candidate) paints visible
+     on the first frame — avoids mobile NO_LCP. */
+  @keyframes rise {
+    from { transform: translateY(10px); }
+    to   { transform: none; }
+  }
 
   /* ---------- page-specific ---------- */
   html { scroll-behavior: smooth; }
@@ -167,7 +173,7 @@
     max-width: 760px;
     padding: clamp(2.5rem, 7vw, 6rem) clamp(2rem, 7vw, 8rem) 5rem;
     /* page-load entrance (auto-disabled under reduced-motion) */
-    animation: fade-up 0.55s cubic-bezier(.2, .7, .3, 1) both;
+    animation: rise 0.55s cubic-bezier(.2, .7, .3, 1) both;
   }
 
   .back {
