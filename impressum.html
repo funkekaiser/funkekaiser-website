@@ -134,7 +134,8 @@
   }
 
   /* ---------- page-specific ---------- */
-  html { scroll-behavior: smooth; }
+  /* background themes the root canvas so mobile overscroll isn't pure black */
+  html { scroll-behavior: smooth; background: var(--bg); }
   body {
     background: var(--bg);
     color: var(--text);

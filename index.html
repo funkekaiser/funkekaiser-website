@@ -163,6 +163,8 @@
 
   /* ---------- page-specific ---------- */
   html, body { height: 100%; }
+  /* theme the root canvas too, so mobile overscroll isn't pure black */
+  html { background: var(--bg); }
   body {
     background: var(--bg);
     color: var(--text);
