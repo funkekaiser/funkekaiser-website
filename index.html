@@ -162,7 +162,8 @@
     transition: transform 0.22s cubic-bezier(.2,.7,.3,1), border-color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
     position: relative;
   }
-  .link:hover {
+  .link:hover,
+  .link:focus-within {
     transform: translateY(-2px);
     background: var(--surface-hover);
     border-color: color-mix(in oklch, var(--accent) 55%, var(--border));
@@ -254,7 +255,7 @@
     font-family: "Geist Mono", monospace;
     font-size: 0.7rem;
     letter-spacing: 0.04em;
-    color: var(--accent);
+    color: var(--accent-ink);
     background: var(--bg);
     padding: 0 0.45rem;
     opacity: 0;
@@ -280,7 +281,7 @@
     text-decoration: none;
     transition: color 0.2s ease;
   }
-  footer a:hover { color: var(--accent); }
+  footer a:hover { color: var(--accent-ink); }
   .footer-sep { opacity: 0.5; margin: 0 0.5rem; }
 
   @media (max-width: 560px) {
@@ -294,7 +295,7 @@
     <div class="bg-field"></div>
   </div>
 
-  <main>
+  <main id="main">
     <header class="intro">
       <p class="eyebrow">Hello, I'm</p>
       <h1>Jonathan<br />Funke-Kaiser</h1>
@@ -328,6 +329,7 @@
         <span class="link-body">
           <span class="link-label">GitHub</span>
           <span class="link-value">github.com/funkekaiser</span>
+          <span class="sr-only"> (opens in a new tab)</span>
         </span>
         <span class="link-arrow" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
@@ -341,6 +343,7 @@
         <span class="link-body">
           <span class="link-label">LinkedIn</span>
           <span class="link-value">linkedin.com/in/funkekaiser</span>
+          <span class="sr-only"> (opens in a new tab)</span>
         </span>
         <span class="link-arrow" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
@@ -354,6 +357,7 @@
         <span class="link-body">
           <span class="link-label">Curriculum Vitae</span>
           <span class="link-value">PDF · résumé</span>
+          <span class="sr-only"> (opens in a new tab)</span>
         </span>
         <span class="link-arrow" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>

@@ -76,7 +76,7 @@
     margin-bottom: 2.5rem;
     transition: color 0.2s ease, transform 0.2s ease;
   }
-  .back:hover { color: var(--accent); transform: translateX(-2px); }
+  .back:hover { color: var(--accent-ink); transform: translateX(-2px); }
 
   .eyebrow {
     font-family: "Geist Mono", monospace;
@@ -117,7 +117,7 @@
   li { margin: 0.3rem 0; }
   strong { color: var(--text); font-weight: 600; }
 
-  a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+  a { color: var(--accent-ink); text-decoration: underline; text-underline-offset: 2px; }
   a:hover { text-decoration-thickness: 2px; }
 
   .card {
@@ -156,11 +156,11 @@
     justify-content: space-between;
   }
   footer a { color: var(--text-faint); text-decoration: none; }
-  footer a:hover { color: var(--accent); }
+  footer a:hover { color: var(--accent-ink); }
 </style>
 </head>
 <body>
-  <main>
+  <main id="main">
     <a class="back" href="index.html">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
       Zurück zur Startseite
@@ -222,7 +222,7 @@
     <p><strong>Speicherdauer:</strong> Logfiles werden nur kurzfristig im Rahmen
     der von Cloudflare vorgesehenen Fristen gespeichert und anschließend
     gelöscht bzw. aggregiert. Details:
-    <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare Datenschutzerklärung</a>.</p>
+    <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare Datenschutzerklärung<span class="sr-only"> (öffnet in neuem Tab)</span></a>.</p>
 
     <h2>2. Reichweitenmessung (Cloudflare Web Analytics)</h2>
     <p>Zur Auswertung der Seitennutzung wird <strong>Cloudflare Web Analytics</strong>
@@ -271,7 +271,7 @@
     E-Mail-Adresse.</p>
     <p>Unabhängig davon steht Ihnen ein Beschwerderecht bei einer
     Aufsichtsbehörde zu. Zuständig ist die österreichische Datenschutzbehörde:
-    <a href="https://www.dsb.gv.at/" target="_blank" rel="noopener">www.dsb.gv.at</a>.</p>
+    <a href="https://www.dsb.gv.at/" target="_blank" rel="noopener">www.dsb.gv.at<span class="sr-only"> (öffnet in neuem Tab)</span></a>.</p>
 
     <h2>7. Änderungen dieser Erklärung</h2>
     <p>Diese Datenschutzerklärung wird bei Bedarf angepasst, um sie an geänderte
