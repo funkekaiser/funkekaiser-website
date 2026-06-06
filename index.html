@@ -349,6 +349,13 @@
     letter-spacing: 0.04em;
     color: var(--text-faint);
   }
+  footer a {
+    color: var(--text-faint);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  footer a:hover { color: var(--accent); }
+  .footer-sep { opacity: 0.5; margin: 0 0.5rem; }
 
   @media (max-width: 560px) {
     footer { position: static; margin-top: 1rem; padding: 0 clamp(2rem,7vw,8rem); }
@@ -429,7 +436,7 @@
     </nav>
   </main>
 
-  <footer>© <span id="year"></span> Jonathan Funke-Kaiser</footer>
+  <footer>© <span id="year"></span> Jonathan Funke-Kaiser<span class="footer-sep">·</span><a href="privacy.html">Datenschutz</a></footer>
 
   <!-- cursor spotlight + copy fallback -->
   <script>
