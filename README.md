@@ -1,27 +1,30 @@
-# Funke-Kaiser Calling Card
+# Funke-Kaiser Personal Landing
 
-A lightweight personal landing page for Jonathan Funke-Kaiser that doubles as a playable, accessibility-friendly take on Pong. The site showcases contact information alongside a full-screen background game whose visuals adapt to the visitor's color-scheme preferences.
+A simple single-page personal landing for Jonathan Funke-Kaiser. The hero shows a name, tagline, and four links — email, GitHub, LinkedIn, and CV — over a signature cursor-following gradient spotlight (a soft purple→teal field revealed by a radial mask that trails the mouse).
 
 ## Features
-- **Responsive layout** – Presents a glassmorphism-inspired calling card on desktop while offering a simplified, touch-friendly layout on small screens.
-- **Adaptive Pong background** – Renders an AI opponent, physics, and score keeping on the full-viewport canvas; automatically pauses on mobile for performance and readability.
-- **Theme-aware styling** – Reads CSS custom properties so the canvas and UI match both light and dark themes without extra configuration.
-- **Keyboard & touch controls** – Supports mouse/touch movement, double-tap or <kbd>Space</kbd> to pause, and <kbd>R</kbd> to reset the match.
+- **Cursor-following spotlight** – A blurred purple/teal gradient field is masked to a soft circle that smoothly trails the pointer; degrades gracefully under `prefers-reduced-motion`.
+- **Theme-aware styling** – Matches the visitor's system light/dark preference via CSS custom properties and `prefers-color-scheme`.
+- **Email with copy fallback** – The email row opens the default mail client (subject prefilled) and offers a copy-to-clipboard button with a "Copied" toast for webmail users.
+- **Self-contained** – A single `index.html` with inlined CSS/JS and no runtime dependencies beyond Google Fonts.
+
+## Build
+There is no build step. The site is a single static `index.html` — edit it and refresh.
 
 ## Local development
-This project is a static site with no build step. To develop locally, serve the files with any static web server, for example:
+Open `index.html` directly in a browser, or serve the folder with any static server:
 
 ```bash
 npx serve .
 ```
 
-Then open the reported URL (typically <http://localhost:3000>) in your browser.
+Then open the reported URL (typically <http://localhost:3000>).
 
 ## Project structure
-- `index.html` – Document structure and calling card content.
-- `style.css` – Theme variables and responsive layout rules.
-- `game.js` – Pong implementation with AI, input handling, and rendering logic.
-- `images/` – Icons and graphics used for favicons and social sharing.
+- `index.html` – The entire page: structure, inlined styles, and the spotlight + copy scripts.
+- `cv.pdf` – CV linked from the page (opens in a new tab).
+- `images/` – Favicons and the social-share card (`og-card.png`).
+- `CNAME` – Custom domain (`funkekaiser.com`) for GitHub Pages.
 
 ## Deployment
-The repository is ready to deploy to static hosting (e.g., GitHub Pages). Ensure the root contains this `CNAME` file so the custom domain remains active.
+The repository deploys to static hosting (e.g., GitHub Pages). Keep the `CNAME` file in the root so the custom domain stays active.
