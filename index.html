@@ -443,8 +443,12 @@
   .footer-sep { opacity: 0.5; margin: 0 0.5rem; }
 
   @media (max-width: 560px) {
+    /* let main + footer share the viewport instead of main taking a full
+       100svh and pushing the static footer past the bottom edge (which
+       forced a scroll even when everything fit) */
+    body { overflow-y: auto; display: flex; flex-direction: column; min-height: 100svh; }
+    main { min-height: 0; flex: 1; }
     footer { position: static; margin-top: 1rem; padding: 0 clamp(2rem,7vw,8rem); }
-    body { overflow-y: auto; }
   }
 </style>
 </head>
