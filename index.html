@@ -489,7 +489,7 @@
         <span class="link-label">Email</span>
         <a class="stretch" href="mailto:jonathan@funkekaiser.com?subject=Hello%20Jonathan" aria-label="Email Jonathan"></a>
         <span class="link-value">jonathan@funkekaiser.com</span>
-        <button class="copy-btn" type="button" aria-label="Copy email address" data-copy="jonathan@funkekaiser.com">
+        <button class="copy-btn" type="button" aria-label="Copy email address">
           <svg class="ico-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V5.5A1.5 1.5 0 0 1 6.5 4H15"/></svg>
           <svg class="ico-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>
         </button>
@@ -557,7 +557,15 @@
         btn.addEventListener("click", function (e) {
           e.preventDefault();
           e.stopPropagation();
-          var text = btn.getAttribute("data-copy");
+          /* read the address from the row's mailto link — by click time
+             Cloudflare's email-decode script has restored the real href,
+             so no plaintext address needs to live in the markup */
+          var row = btn.closest(".link");
+          var link = row && row.querySelector('a[href^="mailto:"]');
+          var text = link
+            ? decodeURIComponent(link.getAttribute("href").replace(/^mailto:/, "").split("?")[0])
+            : "";
+          if (!text) return;
           var fallback = function () {
             var ta = document.createElement("textarea");
             ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
