@@ -98,9 +98,11 @@
     --surface-hover: rgba(20, 22, 28, 0.05);
     --border: rgba(20, 22, 28, 0.10);
     --text: #15171c;
-    --text-weak: #5b6068;
-    --text-faint: #6a6f77;          /* AA: 4.64:1 on --bg */
-    --accent-ink: #6b4ad6;          /* accent at text contrast — AA: 5.38:1 on --bg */
+    /* weak/faint/ink are AA (≥4.5:1) even over the canvas field's deepest
+       purple (rgb(177,148,246) composite at intensity 0.7), not just --bg */
+    --text-weak: #323539;           /* worst-case 5.00:1, on --bg 11.33:1 */
+    --text-faint: #393c40;          /* worst-case 4.50:1, on --bg 10.19:1 */
+    --accent-ink: #402c80;          /* worst-case 4.50:1, on --bg 10.19:1 */
     --on-accent: #0c0d10;
   }
   @media (prefers-color-scheme: dark) {
@@ -111,9 +113,11 @@
       --surface-hover: rgba(255, 255, 255, 0.06);
       --border: rgba(255, 255, 255, 0.10);
       --text: #eceef2;
-      --text-weak: #9aa0aa;
-      --text-faint: #757c86;        /* AA: 4.67:1 on --bg */
-      --accent-ink: #9a7bff;        /* accent already AA on dark — 6.23:1 */
+      /* AA (≥4.5:1) even over the field's deepest purple — rgb(100,67,176)
+         composite at intensity 0.7 */
+      --text-weak: #d8dade;         /* worst-case 5.00:1, on --bg 14.03:1 */
+      --text-faint: #cdcfd3;        /* worst-case 4.50:1, on --bg 12.63:1 */
+      --accent-ink: #d5c8ff;        /* worst-case 4.50:1, on --bg 12.63:1 */
       --on-accent: #0c0d10;
     }
   }
@@ -121,16 +125,16 @@
     --bg: #f4f5f7; --bg-deep: #eceef1;
     --surface: rgba(20, 22, 28, 0.025); --surface-hover: rgba(20, 22, 28, 0.05);
     --border: rgba(20, 22, 28, 0.10);
-    --text: #15171c; --text-weak: #5b6068; --text-faint: #6a6f77;
-    --accent-ink: #6b4ad6;
+    --text: #15171c; --text-weak: #323539; --text-faint: #393c40;
+    --accent-ink: #402c80;
     --on-accent: #0c0d10;
   }
   :root[data-theme="dark"] {
     --bg: #0a0b0e; --bg-deep: #060709;
     --surface: rgba(255, 255, 255, 0.028); --surface-hover: rgba(255, 255, 255, 0.06);
     --border: rgba(255, 255, 255, 0.10);
-    --text: #eceef2; --text-weak: #9aa0aa; --text-faint: #757c86;
-    --accent-ink: #9a7bff;
+    --text: #eceef2; --text-weak: #d8dade; --text-faint: #cdcfd3;
+    --accent-ink: #d5c8ff;
     --on-accent: #0c0d10;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -177,7 +181,7 @@
   }
 
   /* ---------- background stage (the color field is drawn on the canvas,
-     tied to the loss landscape: teal over minima, purple over maxima) ---------- */
+     tied to the gaussian random field: teal valleys, purple hills) ---------- */
   .bg {
     position: fixed;
     inset: 0;
@@ -211,6 +215,54 @@
     inset: 0;
     width: 100%;
     height: 100%;
+  }
+  /* ---------- field tuner (dev panel for dialing in the background) ---------- */
+  .tuner {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.7rem 0.85rem;
+    font-family: "Geist Mono", ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: var(--text-weak);
+    background: var(--bg-deep);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .tuner[hidden] { display: none; } /* our display:flex would beat the UA hidden style */
+  .tuner label { display: flex; align-items: center; gap: 0.55rem; }
+  .tuner input[type="range"] { width: 150px; accent-color: var(--accent-ink); }
+  .tuner output { min-width: 3.2ch; text-align: right; color: var(--text); }
+  .tuner .themes { display: flex; gap: 0.35rem; }
+  .tuner .themes button {
+    flex: 1;
+    padding: 0.25rem 0.5rem;
+    font: inherit;
+    color: var(--text-weak);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .tuner .themes button[aria-pressed="true"] {
+    color: var(--text);
+    border-color: var(--accent-ink);
+  }
+  .tuner .palettes { display: flex; gap: 0.35rem; }
+  .tuner .palettes button {
+    flex: 1;
+    height: 20px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .tuner .palettes button[aria-pressed="true"] {
+    outline: 2px solid var(--accent-ink);
+    outline-offset: 1px;
   }
   /* ---------- layout ---------- */
   main {
@@ -350,7 +402,7 @@
     place-items: center;
     border-radius: 10px;
     background: color-mix(in oklch, var(--accent) 12%, transparent);
-    color: var(--accent);
+    color: var(--accent-ink); /* accent at text contrast — raw --accent washes out in light mode */
     transition: background 0.22s ease, color 0.22s ease;
   }
   .link:hover .link-icon {
@@ -379,7 +431,7 @@
     transition: transform 0.22s ease, color 0.22s ease;
   }
   .link:hover .link-arrow {
-    color: var(--accent);
+    color: var(--accent-ink);
     transform: translate(2px, -2px);
   }
   .link-arrow svg { width: 16px; height: 16px; display: block; }
@@ -406,16 +458,16 @@
     transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
   }
   .copy-btn:hover {
-    color: var(--accent);
+    color: var(--accent-ink);
     border-color: color-mix(in oklch, var(--accent) 50%, var(--border));
     background: color-mix(in oklch, var(--accent) 10%, transparent);
   }
   .copy-btn svg { width: 16px; height: 16px; display: block; }
-  .copy-btn .ico-check { display: none; color: var(--accent); }
+  .copy-btn .ico-check { display: none; color: var(--accent-ink); }
   .copy-btn.copied .ico-copy { display: none; }
   .copy-btn.copied .ico-check { display: block; }
   .copy-btn.copied {
-    color: var(--accent);
+    color: var(--accent-ink);
     border-color: color-mix(in oklch, var(--accent) 55%, var(--border));
     background: color-mix(in oklch, var(--accent) 12%, transparent);
   }
@@ -473,6 +525,58 @@
     <canvas id="viz"></canvas>
   </div>
   <div class="grain" aria-hidden="true"></div>
+
+  <!-- field tuner: dev-only controls for dialing in the background.
+       Ships hidden — unhide from the console with `viz.panel()` (or
+       `document.querySelector(".tuner").hidden = false`); the wiring stays
+       live. Poke values directly via `viz.descent` (zoom, strength, count,
+       kick, morph, gain), then `viz.refresh()` to re-render the field. -->
+  <div class="tuner" hidden>
+    <label>zoom
+      <input id="tune-zoom" type="range" min="0.1" max="6" step="0.05" value="0.65" />
+      <output id="tune-zoom-out">0.65</output>
+    </label>
+    <label>intensity
+      <input id="tune-int" type="range" min="0" max="1" step="0.05" value="0.7" />
+      <output id="tune-int-out">0.70</output>
+    </label>
+    <label>dots
+      <input id="tune-dots" type="range" min="1" max="20" step="1" value="3" />
+      <output id="tune-dots-out">3</output>
+    </label>
+    <label>kick
+      <input id="tune-kick" type="range" min="0" max="500" step="10" value="200" />
+      <output id="tune-kick-out">200</output>
+    </label>
+    <label>morph
+      <input id="tune-morph" type="range" min="0" max="60" step="1" value="10" />
+      <output id="tune-morph-out">10</output>
+    </label>
+    <label>descent
+      <input id="tune-desc" type="range" min="0.2" max="5" step="0.1" value="1.3" />
+      <output id="tune-desc-out">1.3</output>
+    </label>
+    <div class="themes" role="group" aria-label="Color scheme">
+      <button id="tune-auto" aria-pressed="true">auto</button>
+      <button id="tune-light" aria-pressed="false">light</button>
+      <button id="tune-dark" aria-pressed="false">dark</button>
+    </div>
+    <div class="palettes" role="group" aria-label="Field colors">
+      <button data-default="1" aria-pressed="false" title="teal → purple (css accents)"
+        style="background:linear-gradient(90deg,#3fd2c7,#9a7bff)"></button>
+      <button data-lo="#3b82f6" data-hi="#9a7bff" aria-pressed="false" title="blue → purple"
+        style="background:linear-gradient(90deg,#3b82f6,#9a7bff)"></button>
+      <button data-lo="#7dd3fc" data-hi="#6366f1" aria-pressed="false" title="ice → indigo"
+        style="background:linear-gradient(90deg,#7dd3fc,#6366f1)"></button>
+      <button data-lo="#ff5d8f" data-hi="#9a7bff" aria-pressed="false" title="pink → purple"
+        style="background:linear-gradient(90deg,#ff5d8f,#9a7bff)"></button>
+      <button data-lo="#ff9d66" data-hi="#9a7bff" aria-pressed="false" title="ember → purple"
+        style="background:linear-gradient(90deg,#ff9d66,#9a7bff)"></button>
+      <button data-lo="#8b5cf6" data-hi="#000000" data-hi-light="#ffffff" aria-pressed="true"
+        title="purple → background (default)"
+        style="background:linear-gradient(90deg,#8b5cf6,#1b1b22)"></button>
+    </div>
+  </div>
 
   <main id="main">
     <header class="intro">
@@ -638,10 +742,14 @@
       const motionMq = window.matchMedia("(prefers-reduced-motion: reduce)");
       let reduced = motionMq.matches;
       let W = 0, H = 0, DPR = 1;
-      let fieldCv = null, fx = null; // offscreen layer for the cursor spotlight
+      let heatCv = null, hx = null; // low-res render of the gaussian field
 
       /* ---- theme colors (read from CSS custom properties) ---- */
       let C = null;
+      // field colors {lo, hi}; the tuner's palette swatches override this.
+      // hiLight swaps in for hi in light mode (scheme-aware ramps: the hills
+      // fade into the page background — black in dark mode, white in light)
+      let palette = { lo: "#8b5cf6", hi: "#000000", hiLight: "#ffffff" }; // violet mono
       function hexRgb(h) {
         h = h.trim().replace("#", "");
         if (h.length === 3) h = h.split("").map((c) => c + c).join("");
@@ -650,18 +758,29 @@
       }
       function refreshColors() {
         const cs = getComputedStyle(root);
-        const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        // light mode needs darker inks: raw accent/accent2 wash out on --bg
-        const a = hexRgb(cs.getPropertyValue(dark ? "--accent" : "--accent-ink"));
-        let b = hexRgb(cs.getPropertyValue("--accent2"));
-        if (!dark) b = mix(b, hexRgb(cs.getPropertyValue("--text")), 0.45);
-        // raw palette for the soft ambient field (ink variants are for lines)
-        C = {
-          a, b,
-          rawA: hexRgb(cs.getPropertyValue("--accent")),
-          rawB: hexRgb(cs.getPropertyValue("--accent2")),
-          k: dark ? 1 : 0.9,
-        };
+        const forced = root.dataset.theme; // tuner override beats the OS scheme
+        const dark = forced ? forced === "dark"
+          : window.matchMedia("(prefers-color-scheme: dark)").matches;
+        // raw palette for the field; tuner override beats the CSS accents
+        const rawA = hexRgb(palette
+          ? (!dark && palette.hiLight ? palette.hiLight : palette.hi)
+          : cs.getPropertyValue("--accent"));
+        const rawB = hexRgb(palette ? palette.lo : cs.getPropertyValue("--accent2"));
+        // light mode needs darker inks: raw colors wash out on --bg
+        const txt = hexRgb(cs.getPropertyValue("--text"));
+        let a, b;
+        if (palette && palette.hiLight) {
+          // bg-fading ramp: the hi end disappears into the page, so the balls
+          // take both their colors from the lo (purple) end instead
+          a = dark ? rawB.slice() : mix(rawB, txt, 0.25);
+          b = dark ? mix(rawB, [255, 255, 255], 0.5) : mix(rawB, txt, 0.55);
+        } else {
+          a = palette ? rawA.slice() : hexRgb(cs.getPropertyValue(dark ? "--accent" : "--accent-ink"));
+          if (palette && !dark) a = mix(a, txt, 0.4);
+          b = rawB.slice();
+          if (!dark) b = mix(b, txt, 0.45);
+        }
+        C = { a, b, rawA, rawB, k: dark ? 1 : 0.9 };
       }
       const rgba = (c, a) => "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")";
       const mix = (c1, c2, t) => [
@@ -680,76 +799,143 @@
 
       /* ---- gradient descent on a loss landscape ---- */
       const descent = {
-        minima: [], maxima: [], center: [0, 0], R2: 1,
-        balls: [], glows: [], phase: "in", phaseT: 0, alpha: 0,
+        waves: [], center: [0, 0], R2: 1, zoom: 0.65, strength: 0.7,
+        count: 3, kick: 200, // tuner: ball count + spawn velocity (px/s)
+        z: 0, morph: 10,     // tuner: slice position + drift speed (px/s)
+                             // along the 3rd dimension of the field
+        gain: 1.3,           // tuner: gradient-descent strength multiplier
+        balls: [], phase: "in", phaseT: 0, alpha: 0,
+        kickVel() {
+          // spawn velocity in a uniformly random direction; the descent
+          // steering takes over within ~0.4s, so this reads as a launch arc
+          const th = Math.random() * Math.PI * 2;
+          return [Math.cos(th) * this.kick, Math.sin(th) * this.kick];
+        },
         field(x, y) {
-          let v = 0;
-          for (const m of this.minima) {
-            const dx = x - m.x, dy = y - m.y;
-            v -= m.A * Math.exp(-(dx * dx + dy * dy) / (2 * m.s * m.s));
-          }
-          for (const m of this.maxima) {
-            const dx = x - m.x, dy = y - m.y;
-            v += m.A * Math.exp(-(dx * dx + dy * dy) / (2 * m.s * m.s));
-          }
+          // a faint global bowl keeps balls from drifting off-screen; it
+          // works on screen coordinates (pre-zoom) so it stays equally faint
+          // at every zoom level instead of swamping the waves when zoomed out
           const dx = x - this.center[0], dy = y - this.center[1];
-          return v + 1.2 * ((dx * dx + dy * dy) / this.R2); // gentle global bowl
+          const bowl = 0.5 * ((dx * dx + dy * dy) / this.R2);
+          // zoom scales the landscape around the screen center: >1 magnifies
+          // (features look bigger), <1 pulls back. Balls sample the same
+          // function, so they always roll on exactly what's shown.
+          x = this.center[0] + dx / this.zoom;
+          y = this.center[1] + dy / this.zoom;
+          // the landscape is a 2d slice (at depth z) of a 3d gaussian field;
+          // advancing z morphs the terrain continuously
+          const zz = this.z / this.zoom;
+          let v = 0;
+          for (const w of this.waves) v += w.a * Math.cos(w.kx * x + w.ky * y + w.kz * zz + w.ph);
+          return v + bowl;
         },
         init() {
           this.newScene();
         },
         newScene() {
-          // alternate minima and maxima on a jittered checkerboard so teal
-          // valleys and purple hills interleave instead of clumping
-          const cols = W >= H ? 3 : 2, rows = W >= H ? 2 : 3;
-          const cw = W / cols, ch = H / rows;
-          const flip = (Math.random() * 2) | 0; // which parity gets the minima
-          this.minima = []; this.maxima = [];
-          for (let j = 0; j < rows; j++) {
-            for (let i = 0; i < cols; i++) {
-              const f = {
-                x: (i + 0.25 + 0.5 * Math.random()) * cw,
-                y: (j + 0.25 + 0.5 * Math.random()) * ch,
-                A: 0.55 + 0.7 * Math.random(),
-                s: Math.min(W, H) * (0.13 + 0.10 * Math.random()),
-              };
-              if ((i + j) % 2 === flip) this.minima.push(f);
-              else this.maxima.push(f);
-            }
+          // spectral synthesis of a gaussian random field: superpose K plane
+          // waves with random directions, phases and wavelengths around the
+          // feature scale — by the central limit theorem the sum is gaussian,
+          // and it has no grid structure at all. Longer wavelengths get more
+          // amplitude (a red spectrum), which keeps the terrain rolling
+          // rather than busy.
+          const K = 24, S = Math.min(W, H);
+          this.waves = [];
+          for (let i = 0; i < K; i++) {
+            const th = Math.random() * Math.PI * 2;
+            const lambda = S * (0.4 + 1.0 * Math.random());
+            const k = (Math.PI * 2) / lambda;
+            // wavelength along the 3rd (time) dimension, same scale as x/y
+            const lz = S * (0.4 + 1.0 * Math.random());
+            this.waves.push({
+              kx: Math.cos(th) * k, ky: Math.sin(th) * k,
+              kz: (Math.PI * 2) / lz,
+              ph: Math.random() * Math.PI * 2,
+              a: (lambda / S) * (0.18 + 0.18 * Math.random()),
+            });
           }
+          this.z = 0;
           this.center = [W / 2, H / 2];
           this.R2 = W * W + H * H;
-          // spawn a handful of balls at high, well-separated points
-          const n = Math.max(3, Math.min(6, Math.round(Math.min(W, H) / 220)));
+          // spawn the balls at high, well-separated points
+          const n = Math.max(1, this.count);
           const cands = [];
           for (let k = 0; k < 60; k++) {
             const c = [W * (0.06 + 0.88 * Math.random()), H * (0.06 + 0.88 * Math.random())];
             cands.push({ c, v: this.field(c[0], c[1]) });
           }
           cands.sort((a, b) => b.v - a.v); // highest first
-          // field range, for tinting the cursor glow by local height
-          this.hi = Math.max.apply(null, this.maxima.map((m) => this.field(m.x, m.y)));
-          this.lo = Math.min.apply(null, this.minima.map((m) => this.field(m.x, m.y)));
           const sep = Math.min(W, H) * 0.18;
           this.balls = [];
           for (const cand of cands) {
             if (this.balls.length >= n) break;
             if (this.balls.some((b) => Math.hypot(b.pos[0] - cand.c[0], b.pos[1] - cand.c[1]) < sep)) continue;
-            this.balls.push({ pos: cand.c.slice(), vel: [0, 0], trail: [], done: false, doneT: 0, t: 0 });
+            this.balls.push({ pos: cand.c.slice(), vel: this.kickVel(), trail: [], done: false, doneT: 0, t: 0 });
           }
-          // map the landscape onto the ambient color field:
-          // teal glows over the minima, purple over the hills
-          this.glows = this.minima.map((m) => ({
-            x: m.x, y: m.y, r: m.s * 2.4, hi: false,
-            a: 0.07 + 0.07 * ((m.A - 0.55) / 0.7),
-          }));
-          for (const m of this.maxima) {
-            this.glows.push({
-              x: m.x, y: m.y, r: m.s * 2.6, hi: true,
-              a: 0.08 + 0.07 * ((m.A - 0.55) / 0.7),
-            });
-          }
+          this.renderField();
           this.phase = "in"; this.phaseT = 0;
+        },
+        buildTables() {
+          // per-texel phase tables for the heatmap. The slice value at depth
+          // z is Σ a·cos(A + kz·z) with A = kx·x' + ky·y' + φ fixed per texel,
+          // so storing a·cos(A) and a·sin(A) once lets drawField re-slice the
+          // 3d field every frame with just two multiply-adds per wave/texel
+          // (cos(A + B) = cosA·cosB − sinA·sinB) — no per-texel trig.
+          const s = 6; // css px per texel; the field is smooth, this is plenty
+          const gw = Math.max(2, Math.ceil(W / s)), gh = Math.max(2, Math.ceil(H / s));
+          this.gw = gw; this.gh = gh;
+          const T = gw * gh, K = this.waves.length;
+          heatCv = heatCv || document.createElement("canvas");
+          heatCv.width = gw; heatCv.height = gh;
+          hx = heatCv.getContext("2d");
+          this.img = hx.createImageData(gw, gh);
+          this.cosT = new Float32Array(K * T);
+          this.sinT = new Float32Array(K * T);
+          this.bowlT = new Float32Array(T);
+          this.vals = new Float32Array(T);
+          const cx = this.center[0], cy = this.center[1];
+          for (let j = 0; j < gh; j++) {
+            for (let i = 0; i < gw; i++) {
+              const t = j * gw + i;
+              const dx = ((i + 0.5) / gw) * W - cx, dy = ((j + 0.5) / gh) * H - cy;
+              this.bowlT[t] = 0.5 * ((dx * dx + dy * dy) / this.R2);
+              const zx = cx + dx / this.zoom, zy = cy + dy / this.zoom;
+              for (let w = 0; w < K; w++) {
+                const wv = this.waves[w];
+                const A = wv.kx * zx + wv.ky * zy + wv.ph;
+                this.cosT[w * T + t] = wv.a * Math.cos(A);
+                this.sinT[w * T + t] = wv.a * Math.sin(A);
+              }
+            }
+          }
+        },
+        drawField() {
+          // paint the current z-slice as a color gradient — normalized height
+          // 0..1 maps color1 (valleys) → color2 (hills)
+          const T = this.gw * this.gh, K = this.waves.length;
+          const vals = this.vals, cT = this.cosT, sT = this.sinT;
+          vals.set(this.bowlT);
+          const zz = this.z / this.zoom;
+          for (let w = 0; w < K; w++) {
+            const cz = Math.cos(this.waves[w].kz * zz), sz = Math.sin(this.waves[w].kz * zz);
+            const base = w * T;
+            for (let t = 0; t < T; t++) vals[t] += cT[base + t] * cz - sT[base + t] * sz;
+          }
+          let lo = Infinity, hi = -Infinity;
+          for (let t = 0; t < T; t++) { const v = vals[t]; if (v < lo) lo = v; if (v > hi) hi = v; }
+          this.lo = lo; this.hi = hi;
+          const d = this.img.data, inv = 1 / ((hi - lo) || 1);
+          for (let t = 0; t < T; t++) {
+            let u = (vals[t] - lo) * inv;
+            u = u * u * (3 - 2 * u); // smoothstep: more presence at the extremes
+            const c = mix(C.rawB, C.rawA, u);
+            d[t * 4] = c[0]; d[t * 4 + 1] = c[1]; d[t * 4 + 2] = c[2]; d[t * 4 + 3] = 255;
+          }
+          hx.putImageData(this.img, 0, 0);
+        },
+        renderField() {
+          this.buildTables();
+          this.drawField();
         },
         spawnBall() {
           // respawn on high ground, away from where the others currently are
@@ -762,16 +948,7 @@
             }
             if (!best || v > best.v) best = { c, v };
           }
-          return { pos: best.c, vel: [0, 0], trail: [], done: false, doneT: 0, t: 0 };
-        },
-        drawGlow(g2d, g, a) {
-          const col = g.hi ? C.rawA : C.rawB;
-          const gr = g2d.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.r);
-          gr.addColorStop(0, rgba(col, a));
-          gr.addColorStop(0.55, rgba(col, a * 0.5));
-          gr.addColorStop(1, rgba(col, 0));
-          g2d.fillStyle = gr;
-          g2d.fillRect(g.x - g.r, g.y - g.r, g.r * 2, g.r * 2);
+          return { pos: best.c, vel: this.kickVel(), trail: [], done: false, doneT: 0, t: 0, slowT: 0 };
         },
         frame(dt) {
           this.phaseT += dt;
@@ -780,66 +957,65 @@
             if (this.alpha >= 1) { this.phase = "run"; this.phaseT = 0; }
           }
           ctx.globalAlpha = this.alpha;
-          const p = pointer();
-          // ambient color field: a dim base layer everywhere, plus a brighter
-          // copy revealed in a soft spotlight around the cursor — overlapping
-          // glows blend inside it (same effect as the old CSS field)
-          for (const g of this.glows) this.drawGlow(ctx, g, g.a * C.k);
-          fx.clearRect(0, 0, W, H);
-          for (const g of this.glows) this.drawGlow(fx, g, Math.min(0.3, g.a * 2.2) * C.k);
-          // the cursor carries its own glow so the effect works everywhere,
-          // tinted by local height: teal in valleys, purple on high ground
-          const cw = Math.min(1, Math.max(0, (this.field(p[0], p[1]) - this.lo) / ((this.hi - this.lo) || 1)));
-          const ccol = mix(C.rawB, C.rawA, cw);
-          const cr = Math.min(W, H) * 0.5;
-          const cgr = fx.createRadialGradient(p[0], p[1], 0, p[0], p[1], cr);
-          cgr.addColorStop(0, rgba(ccol, 0.28 * C.k));
-          cgr.addColorStop(0.55, rgba(ccol, 0.13 * C.k));
-          cgr.addColorStop(1, rgba(ccol, 0));
-          fx.fillStyle = cgr;
-          fx.fillRect(p[0] - cr, p[1] - cr, cr * 2, cr * 2);
-          const R = Math.max(W, H) * 0.44;
-          const m = fx.createRadialGradient(p[0], p[1], 0, p[0], p[1], R);
-          m.addColorStop(0, "rgba(0,0,0,1)");
-          m.addColorStop(0.42, "rgba(0,0,0,0.35)");
-          m.addColorStop(0.72, "rgba(0,0,0,0)");
-          m.addColorStop(1, "rgba(0,0,0,0)");
-          fx.globalCompositeOperation = "destination-in";
-          fx.fillStyle = m;
-          fx.fillRect(0, 0, W, H);
-          fx.globalCompositeOperation = "source-over";
-          ctx.drawImage(fieldCv, 0, 0, W, H);
+          const p = pointer(); // balls near this point glow brighter
+          // drift the slice through the field's 3rd dimension — the terrain
+          // (and everything rolling on it) morphs slowly and continuously
+          if (this.morph > 0 && !reduced) {
+            this.z += this.morph * dt;
+            this.drawField();
+          }
+          // the field itself, drawn at the tunable strength
+          ctx.globalAlpha = this.alpha * this.strength * C.k;
+          ctx.drawImage(heatCv, 0, 0, W, H);
+          ctx.globalAlpha = this.alpha;
           if (this.phase === "run") {
             for (const b of this.balls) {
               if (b.done) {
+                // fading out — physics keeps running below, so the ball
+                // dissolves in motion instead of freezing in place
                 b.doneT += dt;
-                // fully faded → roll a fresh one
-                if (b.doneT > 1.3) Object.assign(b, this.spawnBall());
-                continue;
+                // fully faded → roll a fresh one; extras added by clicking
+                // retire instead, shrinking back to the target population
+                if (b.doneT > 1.3) {
+                  if (this.balls.length > this.count) b.dead = true;
+                  else Object.assign(b, this.spawnBall());
+                  continue;
+                }
+              } else {
+                b.t += dt;
               }
-              b.t += dt;
               const h = 2, P = b.pos;
               const gx = (this.field(P[0] + h, P[1]) - this.field(P[0] - h, P[1])) / (2 * h);
               const gy = (this.field(P[0], P[1] + h) - this.field(P[0], P[1] - h)) / (2 * h);
-              const gm = Math.hypot(gx, gy) + 1e-9;
-              const speed = Math.min(240, gm * 5e4);
-              b.vel[0] += ((-gx / gm) * speed - b.vel[0]) * Math.min(1, dt * 2.5);
-              b.vel[1] += ((-gy / gm) * speed - b.vel[1]) * Math.min(1, dt * 2.5);
+              // heavy-ball gradient descent: accelerate along -∇f with light
+              // friction, so momentum can carry a ball through a minimum and
+              // up the far slope (overshoot) before it swings back
+              const A = 9e4 * this.gain, MU = 1.4;
+              b.vel[0] += (-gx * A - b.vel[0] * MU) * dt;
+              b.vel[1] += (-gy * A - b.vel[1] * MU) * dt;
+              const sp = Math.hypot(b.vel[0], b.vel[1]);
+              if (sp > 600) { b.vel[0] *= 600 / sp; b.vel[1] *= 600 / sp; }
               P[0] += b.vel[0] * dt; P[1] += b.vel[1] * dt;
               b.trail.push([P[0], P[1]]);
               if (b.trail.length > 170) b.trail.shift();
-              // settle only on actually reaching a minimum — slow rolling in
-              // flat regions is fine, it keeps the scene alive longer
-              const nearMin = this.minima.some((m) => Math.hypot(P[0] - m.x, P[1] - m.y) < 14);
-              if ((nearMin && b.t > 1.2) || (speed < 8 && b.t > 4) || b.t > 25) {
+              if (b.done) continue;
+              // a hovered ball is exempt: it never vanishes under the cursor
+              const hovered = Math.hypot(P[0] - p[0], P[1] - p[1]) < 30;
+              // fade out once a ball stays slow — the brief pause at the top
+              // of an overshoot swing (~0.1s) survives, lingering doesn't
+              b.slowT = sp < 25 ? (b.slowT || 0) + dt : 0;
+              if (!hovered && ((b.slowT > 0.5 && b.t > 2.5) || b.t > 25)) {
                 b.done = true; b.doneT = 0;
               }
             }
+            if (this.balls.some((b) => b.dead)) {
+              this.balls = this.balls.filter((b) => !b.dead);
+            }
           }
           for (const b of this.balls) {
-            // fade in on spawn, fade out quietly once settled
+            // fade in on spawn, fade out over ~1.3s while still rolling
             const fade = b.done
-              ? Math.max(0, 1 - Math.max(0, b.doneT - 0.3) / 1.0)
+              ? Math.max(0, 1 - b.doneT / 1.3)
               : Math.min(1, b.t / 0.6);
             if (fade <= 0) continue;
             // balls near the cursor (or the mobile drift point) light up
@@ -853,14 +1029,10 @@
               ctx.strokeStyle = rgba(col, (0.22 + 0.26 * glow) * a * a * fade * C.k);
               ctx.beginPath(); ctx.moveTo(tr[i - 1][0], tr[i - 1][1]); ctx.lineTo(tr[i][0], tr[i][1]); ctx.stroke();
             }
-            const R = 10 + 8 * glow;
-            const g = ctx.createRadialGradient(b.pos[0], b.pos[1], 0, b.pos[0], b.pos[1], R);
-            g.addColorStop(0, rgba(col, (0.40 + 0.30 * glow) * fade * C.k));
-            g.addColorStop(1, rgba(col, 0));
-            ctx.fillStyle = g;
-            ctx.beginPath(); ctx.arc(b.pos[0], b.pos[1], R, 0, 6.2832); ctx.fill();
-            ctx.fillStyle = rgba(col, (0.75 + 0.25 * glow) * fade * C.k);
-            ctx.beginPath(); ctx.arc(b.pos[0], b.pos[1], 2.2 + 0.8 * glow, 0, 6.2832); ctx.fill();
+            // bare dot, no halo — proximity to the pointer still brightens
+            // the color (via glow above) and grows it slightly
+            ctx.fillStyle = rgba(col, (0.7 + 0.3 * glow) * fade * C.k);
+            ctx.beginPath(); ctx.arc(b.pos[0], b.pos[1], 2.2 + 1.0 * glow, 0, 6.2832); ctx.fill();
           }
           ctx.globalAlpha = 1;
         },
@@ -880,10 +1052,6 @@
         W = window.innerWidth; H = window.innerHeight;
         canvas.width = Math.round(W * DPR); canvas.height = Math.round(H * DPR);
         ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-        fieldCv = fieldCv || document.createElement("canvas");
-        fieldCv.width = canvas.width; fieldCv.height = canvas.height;
-        fx = fieldCv.getContext("2d");
-        fx.setTransform(DPR, 0, 0, DPR, 0, 0);
         refreshColors();
         descent.init();
         if (reduced) staticFrame();
@@ -891,6 +1059,18 @@
       window.addEventListener("resize", resize);
       const schemeMq = window.matchMedia("(prefers-color-scheme: dark)");
       if (schemeMq.addEventListener) schemeMq.addEventListener("change", resize);
+
+      // clicking spawns a new ball right at the cursor, launched with the
+      // same random-direction kick as any spawn (clicks on real UI — links,
+      // buttons, the tuner — don't count)
+      window.addEventListener("pointerdown", (e) => {
+        if (e.target.closest && e.target.closest("a, button, input, .tuner")) return;
+        if (descent.balls.length >= descent.count + 40) return; // spam guard
+        descent.balls.push({
+          pos: [e.clientX, e.clientY], vel: descent.kickVel(),
+          trail: [], done: false, doneT: 0, t: 0, slowT: 0,
+        });
+      });
 
       let last = 0, running = false;
       function tick(now) {
@@ -913,8 +1093,95 @@
         });
       }
 
+      /* ---- field tuner (dev panel): zoom slider + color-scheme override ---- */
+      (function tuner() {
+        const zoomEl = document.getElementById("tune-zoom");
+        const zoomOut = document.getElementById("tune-zoom-out");
+        if (!zoomEl) return;
+        function repaint() {
+          if (reduced) { ctx.clearRect(0, 0, W, H); staticFrame(); }
+        }
+        zoomEl.addEventListener("input", () => {
+          descent.zoom = parseFloat(zoomEl.value) || 1;
+          zoomOut.textContent = descent.zoom.toFixed(2);
+          descent.renderField();
+          repaint();
+        });
+        const intEl = document.getElementById("tune-int");
+        const intOut = document.getElementById("tune-int-out");
+        intEl.addEventListener("input", () => {
+          descent.strength = parseFloat(intEl.value);
+          intOut.textContent = descent.strength.toFixed(2);
+          repaint(); // alpha is applied at draw time, no field re-render needed
+        });
+        const dotsEl = document.getElementById("tune-dots");
+        const dotsOut = document.getElementById("tune-dots-out");
+        dotsEl.addEventListener("input", () => {
+          descent.count = parseInt(dotsEl.value, 10) || 1;
+          dotsOut.textContent = String(descent.count);
+          // adjust the live population instead of resetting the whole scene
+          while (descent.balls.length > descent.count) descent.balls.pop();
+          while (descent.balls.length < descent.count) descent.balls.push(descent.spawnBall());
+          repaint();
+        });
+        const kickEl = document.getElementById("tune-kick");
+        const kickOut = document.getElementById("tune-kick-out");
+        kickEl.addEventListener("input", () => {
+          descent.kick = parseFloat(kickEl.value) || 0;
+          kickOut.textContent = String(descent.kick);
+          repaint(); // applies to every ball spawned from now on
+        });
+        const morphEl = document.getElementById("tune-morph");
+        const morphOut = document.getElementById("tune-morph-out");
+        morphEl.addEventListener("input", () => {
+          descent.morph = parseFloat(morphEl.value) || 0;
+          morphOut.textContent = String(descent.morph);
+          repaint();
+        });
+        const descEl = document.getElementById("tune-desc");
+        const descOut = document.getElementById("tune-desc-out");
+        descEl.addEventListener("input", () => {
+          descent.gain = parseFloat(descEl.value) || 1;
+          descOut.textContent = descent.gain.toFixed(1);
+          repaint();
+        });
+        const swatches = document.querySelectorAll(".tuner .palettes button");
+        swatches.forEach((sw) => {
+          sw.addEventListener("click", () => {
+            palette = sw.dataset.default ? null
+              : { lo: sw.dataset.lo, hi: sw.dataset.hi, hiLight: sw.dataset.hiLight || null };
+            swatches.forEach((s) => s.setAttribute("aria-pressed", String(s === sw)));
+            refreshColors();
+            descent.renderField();
+            repaint();
+          });
+        });
+        const modes = { auto: "", light: "light", dark: "dark" };
+        for (const key of Object.keys(modes)) {
+          document.getElementById("tune-" + key).addEventListener("click", () => {
+            if (modes[key]) root.dataset.theme = modes[key];
+            else delete root.dataset.theme;
+            for (const k of Object.keys(modes)) {
+              document.getElementById("tune-" + k)
+                .setAttribute("aria-pressed", String(k === key));
+            }
+            refreshColors();
+            descent.renderField();
+            repaint();
+          });
+        }
+      })();
+
       resize();
       start();
+
+      // dev hook: the tuner panel ships hidden — `viz.panel()` brings it
+      // back, or tweak `viz.descent` directly and call `viz.refresh()`
+      window.viz = {
+        descent,
+        refresh() { refreshColors(); descent.renderField(); },
+        panel(show = true) { document.querySelector(".tuner").hidden = !show; },
+      };
     })();
   </script>
 </body>
