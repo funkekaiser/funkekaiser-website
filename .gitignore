@@ -24,5 +24,8 @@ node_modules
 # images
 head-source/
 
+# Fetched from the CurriculumVitae repo's "latest" release at deploy time
+Jonathan-Funke-Kaiser-CV.pdf
+
 # Local editor / agent config (preview launch.json, etc.)
 .claude/

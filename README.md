@@ -41,7 +41,7 @@ git commit -am "bump ml-on-canvas"
 - `impressum.html` – Combined Impressum & Datenschutz (German; §25 MedienG + DSGVO).
 - `404.html` – Branded not-found page (Cloudflare Pages serves it for unmatched routes).
 - `og-card.html` – Source for the 1200×630 social card; re-render to `images/og-card.png` after edits (see below).
-- `Jonathan-Funke-Kaiser-CV.pdf` – CV linked from the page (opens in a new tab).
+- `Jonathan-Funke-Kaiser-CV.pdf` – CV linked from the page (opens in a new tab). Not tracked in git: the Cloudflare Pages build command downloads it from the [CurriculumVitae](https://github.com/funkekaiser/CurriculumVitae) repo's rolling `latest` release, and that repo's CI pings a deploy hook here after each CV build.
 - `fonts/` – Self-hosted Geist / Geist Mono `woff2` subsets (latin + latin-ext).
 - `images/` – Favicon set, the social-share card (`og-card.png`), and `noise.svg` texture.
 - `_headers` – Cloudflare Pages security headers.
