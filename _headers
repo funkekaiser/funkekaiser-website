@@ -8,11 +8,12 @@
 #   to HTTPS-only forever. To back out of HSTS, lower max-age (e.g. =0);
 #   browsers drop the policy on their next visit.
 #
-# CSP: script-src pins the FOUR inline <script> blocks by SHA-256 hash, so
-#   no 'unsafe-inline' is needed for scripts. IF YOU EDIT ANY INLINE SCRIPT
-#   (the two IIFEs in index.html, the IIFE in 404.html, or the year line in
-#   impressum.html), the page's JS will be blocked until you regenerate its
-#   hash. Regenerate:
+# CSP: script-src pins the inline <script> blocks by SHA-256 hash (four
+#   unique hashes: the theme bootstrap shared by all three pages, the main
+#   IIFE in index.html, the IIFE in 404.html, and the year line in
+#   impressum.html), so no 'unsafe-inline' is needed for scripts. IF YOU
+#   EDIT ANY INLINE SCRIPT the page's JS will be blocked until you
+#   regenerate its hash. Regenerate:
 #
 #     python3 - <<'PY'
 #     import re,hashlib,base64
@@ -38,4 +39,4 @@
   Permissions-Policy: accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), browsing-topics=()
   X-Frame-Options: DENY
   Strict-Transport-Security: max-age=31536000; includeSubDomains
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self'; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-tlfE+bAlsPedseQKntJ+QW9JxdqpRsQv7awyK77gMyQ=' 'sha256-X/iCs5eb7jIfgC8+1wJsVJNj/4cqR8D3sYKiZurqhZM=' 'sha256-P6VhVxRwM9KXfb+I+jQV1R0ubd6GproPXbKNYc5fzmg=' 'sha256-VO4XPK9S020sabWP72Ql+pf7mcl8XoZqNJt7zSWaKmk=' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self'; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-5z4n/JiPuEt+6mQbIO7TVk4vQE+MPbwAxqgF1ZjHG1s=' 'sha256-w7yWJcLXXhwL3yiyc4v7B7boqoxkMxqgiASErHRMB58=' 'sha256-P6VhVxRwM9KXfb+I+jQV1R0ubd6GproPXbKNYc5fzmg=' 'sha256-VO4XPK9S020sabWP72Ql+pf7mcl8XoZqNJt7zSWaKmk=' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; upgrade-insecure-requests

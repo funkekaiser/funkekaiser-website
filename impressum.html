@@ -9,8 +9,12 @@
 <meta name="robots" content="noindex" />
 
 <meta name="color-scheme" content="light dark" />
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f5f7" />
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0a0b0e" />
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f4f4f1" />
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#131311" />
+
+<!-- theme bootstrap: apply the saved toggle override before first paint.
+     Identical across index/impressum/404 — one shared CSP hash. -->
+<script>(function(){try{var t=localStorage.getItem("fk-theme");if(t==="dark"||t==="light")document.documentElement.setAttribute("data-theme",t)}catch(e){}})();</script>
 
 <link rel="icon" type="image/svg+xml" href="images/favicon/favicon.svg" />
 <link rel="icon" type="image/png" sizes="32x32" href="images/favicon/favicon-32.png" />
@@ -58,51 +62,58 @@
     src: url("fonts/geist-mono-latin-ext.woff2") format("woff2");
     unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
   }
+  /* Warm paper / warm near-black palette shared with the homepage redesign
+     (classifier-gallery design F). --accent is cluster red, --accent2
+     cluster blue; all text tokens AA (≥4.5:1) on their --bg. */
   :root {
-    --accent: #9a7bff;
-    --accent2: #3fd2c7;
+    --accent: #a04a31;
+    --accent2: #4763ad;
     --glow: 0.33;          /* 0..1 */
     --reveal: 44vmax;      /* spotlight radius */
-    --bg: #f4f5f7;
-    --bg-deep: #eceef1;
-    --surface: rgba(20, 22, 28, 0.025);
-    --surface-hover: rgba(20, 22, 28, 0.05);
-    --border: rgba(20, 22, 28, 0.10);
-    --text: #15171c;
-    --text-weak: #5b6068;
-    --text-faint: #6a6f77;          /* AA: 4.64:1 on --bg */
-    --accent-ink: #6b4ad6;          /* accent at text contrast — AA: 5.38:1 on --bg */
-    --on-accent: #0c0d10;
+    --bg: #f4f4f1;
+    --bg-deep: #ebebe6;
+    --surface: rgba(27, 27, 25, 0.03);
+    --surface-hover: rgba(27, 27, 25, 0.06);
+    --border: rgba(27, 27, 25, 0.14);
+    --text: #1b1b19;
+    --text-weak: #54534c;
+    --text-faint: #6c6b63;          /* AA: ~4.9:1 on --bg */
+    --accent-ink: #a04a31;          /* accent at text contrast — AA: ~4.8:1 on --bg */
+    --on-accent: #fdfdfc;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) {
-      --bg: #0a0b0e;
-      --bg-deep: #060709;
-      --surface: rgba(255, 255, 255, 0.028);
-      --surface-hover: rgba(255, 255, 255, 0.06);
-      --border: rgba(255, 255, 255, 0.10);
-      --text: #eceef2;
-      --text-weak: #9aa0aa;
-      --text-faint: #757c86;        /* AA: 4.67:1 on --bg */
-      --accent-ink: #9a7bff;        /* accent already AA on dark — 6.23:1 */
-      --on-accent: #0c0d10;
+      --bg: #131311;
+      --bg-deep: #0c0c0b;
+      --surface: rgba(236, 234, 228, 0.04);
+      --surface-hover: rgba(236, 234, 228, 0.07);
+      --border: rgba(236, 234, 228, 0.16);
+      --text: #eceae4;
+      --text-weak: #a8a79d;
+      --text-faint: #8d8b81;        /* AA: ~5.5:1 on --bg */
+      --accent: #d4805f;
+      --accent2: #84a0e8;
+      --accent-ink: #d4805f;        /* AA on dark — ~6.2:1 */
+      --on-accent: #131311;
     }
   }
   :root[data-theme="light"] {
-    --bg: #f4f5f7; --bg-deep: #eceef1;
-    --surface: rgba(20, 22, 28, 0.025); --surface-hover: rgba(20, 22, 28, 0.05);
-    --border: rgba(20, 22, 28, 0.10);
-    --text: #15171c; --text-weak: #5b6068; --text-faint: #6a6f77;
-    --accent-ink: #6b4ad6;
-    --on-accent: #0c0d10;
+    --bg: #f4f4f1; --bg-deep: #ebebe6;
+    --surface: rgba(27, 27, 25, 0.03); --surface-hover: rgba(27, 27, 25, 0.06);
+    --border: rgba(27, 27, 25, 0.14);
+    --text: #1b1b19; --text-weak: #54534c; --text-faint: #6c6b63;
+    --accent: #a04a31; --accent2: #4763ad;
+    --accent-ink: #a04a31;
+    --on-accent: #fdfdfc;
   }
   :root[data-theme="dark"] {
-    --bg: #0a0b0e; --bg-deep: #060709;
-    --surface: rgba(255, 255, 255, 0.028); --surface-hover: rgba(255, 255, 255, 0.06);
-    --border: rgba(255, 255, 255, 0.10);
-    --text: #eceef2; --text-weak: #9aa0aa; --text-faint: #757c86;
-    --accent-ink: #9a7bff;
-    --on-accent: #0c0d10;
+    --bg: #131311; --bg-deep: #0c0c0b;
+    --surface: rgba(236, 234, 228, 0.04); --surface-hover: rgba(236, 234, 228, 0.07);
+    --border: rgba(236, 234, 228, 0.16);
+    --text: #eceae4; --text-weak: #a8a79d; --text-faint: #8d8b81;
+    --accent: #d4805f; --accent2: #84a0e8;
+    --accent-ink: #d4805f;
+    --on-accent: #131311;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :focus-visible {
