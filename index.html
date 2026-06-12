@@ -522,11 +522,14 @@
   <footer>© <span id="year"></span> Jonathan Funke-Kaiser<span class="footer-sep">·</span><a href="impressum.html" data-cluster="4">Impressum &amp; Datenschutz</a></footer>
   <div class="readout" aria-hidden="true"><span class="legend-dots"><span class="ld c0"></span><span class="ld c1"></span><span class="ld c2"></span><span class="ld c3"></span><span class="ld c4"></span></span><span id="algo-label">k-means++ · k = 5 · iter 00</span></div>
 
-  <!-- theme toggle + copy email + classifier-gallery background.
-       The background is a rotating gallery of real classifiers trained live
-       on freshly spawned 2-D data: k-means++, softmax regression, linear SVM
-       (one-vs-rest), k-NN, and a gini decision tree. Each of the five page
-       links owns one cluster; hover links↔clusters both ways. -->
+  <!-- Two scripts: (1) site chrome — theme toggle, copy email, year.
+       (2) a module adapter that wires up the classifier-gallery background:
+       a rotating gallery of real classifiers trained live on freshly spawned
+       2-D data (k-means++, softmax regression, linear SVM one-vs-rest, k-NN,
+       gini decision tree). The engine lives in vendor/ml-on-canvas — a git
+       submodule of https://github.com/funkekaiser/ml-on-canvas — so engine
+       tweaks land here via a submodule bump. Each of the five page links owns
+       one cluster; hover links↔clusters both ways. -->
   <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     (function () {
       "use strict";
@@ -539,17 +542,13 @@
         var t = root.getAttribute("data-theme");
         return t ? t === "dark" : schemeMq.matches;
       }
+      /* the gallery adapter below watches data-theme via MutationObserver,
+         so toggling the attribute is all that's needed here */
       document.getElementById("theme-btn").addEventListener("click", function () {
         var dark = !isDark();
         root.setAttribute("data-theme", dark ? "dark" : "light");
         try { localStorage.setItem("fk-theme", dark ? "dark" : "light"); } catch (e) {}
-        themeChanged();
       });
-      if (schemeMq.addEventListener) {
-        schemeMq.addEventListener("change", function () {
-          if (!root.getAttribute("data-theme")) themeChanged();
-        });
-      }
 
       /* ---- copy-to-clipboard on the email row ---- */
       document.querySelectorAll(".copy-btn").forEach(function (btn) {
@@ -582,442 +581,43 @@
         });
       });
 
-      /* ---- cluster ↔ link hover wiring ---- */
-      var K = 5;
-      var clusterEls = [];
-      document.querySelectorAll("[data-cluster]").forEach(function (el) {
-        clusterEls[+el.getAttribute("data-cluster")] = el;
-      });
-      var linkHover = null, canvasHover = null;
-      var hoverMq = window.matchMedia("(hover: hover) and (pointer: fine)");
-      clusterEls.forEach(function (el, k) {
-        el.addEventListener("mouseenter", function () { if (hoverMq.matches) linkHover = k; });
-        el.addEventListener("mouseleave", function () { linkHover = null; });
-      });
+    })();
+  </script>
+  <script type="module">
+    import { createGallery } from "/vendor/ml-on-canvas/ml-on-canvas.js";
 
-      /* ---- classifier-gallery engine ---- */
-      var canvas = document.getElementById("viz");
-      if (!canvas || !canvas.getContext) return;
-      var ctx = canvas.getContext("2d");
-      var motionMq = window.matchMedia("(prefers-reduced-motion: reduce)");
-      var reduced = motionMq.matches;
-      var algoEl = document.getElementById("algo-label");
+    const root = document.documentElement;
+    const schemeMq = window.matchMedia("(prefers-color-scheme: dark)");
+    const isDark = () => {
+      const t = root.getAttribute("data-theme");
+      return t ? t === "dark" : schemeMq.matches;
+    };
 
-      /* canvas palettes are brighter than the text-safe CSS --cN shades */
-      var THEMES = {
-        light: {
-          bg: "#f4f4f1", ink: "#1b1b19", ring: "27,27,25", gray: [158, 156, 148],
-          pal: [[182, 92, 67], [63, 138, 98], [85, 115, 196], [168, 90, 147], [168, 133, 63]],
-        },
-        dark: {
-          bg: "#131311", ink: "#eceae4", ring: "236,234,228", gray: [104, 102, 94],
-          pal: [[207, 122, 94], [96, 168, 128], [122, 150, 224], [196, 122, 176], [194, 156, 85]],
-        },
-      };
-      var cur = function () { return THEMES[isDark() ? "dark" : "light"]; };
-      var mixc = function (c1, c2, t) {
-        return [
-          (c1[0] + (c2[0] - c1[0]) * t) | 0,
-          (c1[1] + (c2[1] - c1[1]) * t) | 0,
-          (c1[2] + (c2[2] - c1[2]) * t) | 0,
-        ];
-      };
-      var rnd = function (a, b) { return a + Math.random() * (b - a); };
-      var gauss = function () { return (Math.random() + Math.random() + Math.random() - 1.5) * 0.9; };
-      var pad = function (n, d) { return String(Math.min(n, Math.pow(10, d) - 1)).padStart(d, "0"); };
+    const canvas = document.getElementById("viz");
+    const algoEl = document.getElementById("algo-label");
+    const clusterEls = [];
+    document.querySelectorAll("[data-cluster]").forEach((el) => {
+      clusterEls[+el.getAttribute("data-cluster")] = el;
+    });
 
-      /* ---- round / algorithm state ---- */
-      var w = 0, h = 0;
-      var algos = ["kmeans", "softmax", "svm", "knn", "tree"];
-      var algoIdx = 0, algo = "kmeans";
-      var pts = [], phase = "in", t0 = 0, alpha = 0;
-      var cents = [], iter = 0, moved = 1e9;
-      var W = null, epoch = 0, acc = 0, svCount = 0;
-      var kNow = 1, kStepT = 0;
-      var tree = null, depthNow = 1, depthT = 0;
-      var layers = null, lastRegion = 0;
-      var dataC = null, dataR = 0, regFade = 0;
-      var scene = null; /* cluster anchors for hover hit-testing */
-
-      var feat = function (x, y) {
-        var s = 0.5 * Math.min(w, h);
-        return [(x - w * 0.5) / s, (y - h * 0.5) / s, 1];
-      };
-
-      /* ---- models ---- */
-      var predictLinear = function (f) {
-        var bi = 0, bs = -1e18;
-        for (var k = 0; k < W.length; k++) {
-          var s = W[k][0] * f[0] + W[k][1] * f[1] + W[k][2];
-          if (s > bs) { bs = s; bi = k; }
-        }
-        return bi;
-      };
-      var stepSoftmax = function () {
-        var lr = 0.12, n = pts.length;
-        var G = W.map(function () { return [0, 0, 0]; });
-        for (var i = 0; i < n; i++) {
-          var p = pts[i];
-          var f = feat(p.x, p.y);
-          var s = W.map(function (wk) { return wk[0] * f[0] + wk[1] * f[1] + wk[2]; });
-          var mx = Math.max.apply(null, s);
-          var ex = s.map(function (v) { return Math.exp(v - mx); });
-          var Z = ex.reduce(function (a, b) { return a + b; }, 0);
-          for (var k = 0; k < K; k++) {
-            var e = ex[k] / Z - (p.g === k ? 1 : 0);
-            G[k][0] += e * f[0]; G[k][1] += e * f[1]; G[k][2] += e * f[2];
-          }
-        }
-        for (var k2 = 0; k2 < K; k2++) for (var j = 0; j < 3; j++) W[k2][j] -= (lr * G[k2][j]) / n;
-      };
-      var stepSvm = function () {
-        var lam = 0.0005, n = pts.length;
-        var lr = Math.min(2, 1 / (lam * (epoch + 1))); /* Pegasos schedule */
-        var G = W.map(function (wk) { return wk.map(function (v) { return lam * v; }); });
-        for (var i = 0; i < n; i++) {
-          var p = pts[i];
-          var f = feat(p.x, p.y);
-          for (var k = 0; k < K; k++) {
-            var yk = p.g === k ? 1 : -1;
-            var s = W[k][0] * f[0] + W[k][1] * f[1] + W[k][2];
-            if (yk * s < 1) { G[k][0] -= (yk * f[0]) / n; G[k][1] -= (yk * f[1]) / n; G[k][2] -= (yk * f[2]) / n; }
-          }
-        }
-        for (var k2 = 0; k2 < K; k2++) for (var j = 0; j < 3; j++) W[k2][j] -= lr * G[k2][j];
-      };
-      var calcAcc = function () {
-        var c = 0;
-        for (var i = 0; i < pts.length; i++) if (predictLinear(feat(pts[i].x, pts[i].y)) === pts[i].g) c++;
-        return c / pts.length;
-      };
-      var markSVs = function () {
-        svCount = 0;
-        for (var i = 0; i < pts.length; i++) {
-          var p = pts[i];
-          var f = feat(p.x, p.y);
-          var s = W[p.g][0] * f[0] + W[p.g][1] * f[1] + W[p.g][2];
-          p.sv = s < 1.05;
-          if (p.sv) svCount++;
-        }
-      };
-      var predictKnn = function (x, y) {
-        var best = [];
-        for (var i = 0; i < pts.length; i++) {
-          var p = pts[i];
-          var d = (p.x - x) * (p.x - x) + (p.y - y) * (p.y - y);
-          if (best.length < kNow) { best.push([d, p.g]); best.sort(function (a, b) { return a[0] - b[0]; }); }
-          else if (d < best[best.length - 1][0]) { best[best.length - 1] = [d, p.g]; best.sort(function (a, b) { return a[0] - b[0]; }); }
-        }
-        var cnt = [0, 0, 0, 0, 0];
-        for (var j = 0; j < best.length; j++) cnt[best[j][1]]++;
-        var bi = 0;
-        for (var k = 1; k < K; k++) if (cnt[k] > cnt[bi]) bi = k;
-        return bi;
-      };
-      var buildTree = function () {
-        var gini = function (idxs) {
-          var c = [0, 0, 0, 0, 0];
-          for (var i = 0; i < idxs.length; i++) c[pts[idxs[i]].g]++;
-          var n = idxs.length || 1;
-          var g = 1;
-          for (var k = 0; k < K; k++) g -= (c[k] / n) * (c[k] / n);
-          return g;
-        };
-        var majority = function (idxs) {
-          var c = [0, 0, 0, 0, 0];
-          for (var i = 0; i < idxs.length; i++) c[pts[idxs[i]].g]++;
-          var bi = 0;
-          for (var k = 1; k < K; k++) if (c[k] > c[bi]) bi = k;
-          return bi;
-        };
-        var split = function (idxs, depth) {
-          var node = { leaf: true, cls: majority(idxs), depth: depth };
-          if (depth >= 3 || idxs.length < 12 || gini(idxs) < 0.05) return node;
-          var best = null;
-          for (var ax = 0; ax <= 1; ax++) {
-            var lo = 1e18, hi = -1e18;
-            for (var i = 0; i < idxs.length; i++) {
-              var v = ax ? pts[idxs[i]].y : pts[idxs[i]].x;
-              if (v < lo) lo = v; if (v > hi) hi = v;
-            }
-            for (var q = 1; q < 16; q++) {
-              var thr = lo + ((hi - lo) * q) / 16;
-              var L = [], R = [];
-              for (var i2 = 0; i2 < idxs.length; i2++) {
-                (((ax ? pts[idxs[i2]].y : pts[idxs[i2]].x) < thr) ? L : R).push(idxs[i2]);
-              }
-              if (L.length < 6 || R.length < 6) continue;
-              var sc = (L.length * gini(L) + R.length * gini(R)) / idxs.length;
-              if (!best || sc < best.sc) best = { sc: sc, ax: ax, thr: thr, L: L, R: R };
-            }
-          }
-          if (!best || best.sc > gini(idxs) - 0.02) return node;
-          node.leaf = false; node.ax = best.ax; node.thr = best.thr;
-          node.l = split(best.L, depth + 1);
-          node.r = split(best.R, depth + 1);
-          return node;
-        };
-        return split(pts.map(function (_, i) { return i; }), 0);
-      };
-      var predictTree = function (x, y) {
-        var n = tree;
-        while (n && !n.leaf && n.depth < depthNow) n = ((n.ax ? y : x) < n.thr) ? n.l : n.r;
-        return n ? n.cls : 0;
-      };
-
-      /* ---- decision-region layers (one offscreen canvas per class, masked
-         to a soft radial zone around the data so the page never tints) ---- */
-      var renderLayers = function () {
-        if (!layers || algo === "kmeans") return;
-        var T = cur();
-        var cell = Math.max(16, Math.round(Math.min(w, h) / 42));
-        for (var l = 0; l < layers.length; l++) layers[l].ctx.clearRect(0, 0, w, h);
-        for (var y = 0; y < h + cell; y += cell) {
-          for (var x = 0; x < w + cell; x += cell) {
-            var cls;
-            if (algo === "softmax" || algo === "svm") cls = predictLinear(feat(x + cell / 2, y + cell / 2));
-            else if (algo === "knn") cls = predictKnn(x + cell / 2, y + cell / 2);
-            else cls = predictTree(x + cell / 2, y + cell / 2);
-            var col = T.pal[cls];
-            var lc = layers[cls].ctx;
-            lc.fillStyle = "rgb(" + col[0] + "," + col[1] + "," + col[2] + ")";
-            lc.fillRect(x, y, cell + 1, cell + 1);
-          }
-        }
-        if (dataC) {
-          for (var l2 = 0; l2 < layers.length; l2++) {
-            var L = layers[l2];
-            var g = L.ctx.createRadialGradient(dataC.x, dataC.y, dataR * 0.5, dataC.x, dataC.y, dataR);
-            g.addColorStop(0, "rgba(0,0,0,1)");
-            g.addColorStop(1, "rgba(0,0,0,0)");
-            L.ctx.globalCompositeOperation = "destination-in";
-            L.ctx.fillStyle = g;
-            L.ctx.fillRect(0, 0, w, h);
-            L.ctx.globalCompositeOperation = "source-over";
-          }
-        }
-      };
-
-      /* ---- round setup ---- */
-      var newRound = function () {
-        algo = algos[algoIdx % algos.length];
-        algoIdx++;
-        var ctr = [];
-        var wide = w / h > 1.15;
-        var xLo = wide ? 0.52 : 0.12, xHi = wide ? 0.90 : 0.88;
-        var sep = Math.min(w, h) * (wide ? 0.17 : 0.21);
-        var guard = 0;
-        while (ctr.length < K && guard++ < 300) {
-          var c = [rnd(xLo, xHi) * w, rnd(0.16, 0.84) * h];
-          var ok = true;
-          for (var i = 0; i < ctr.length; i++) {
-            if (Math.hypot(ctr[i][0] - c[0], ctr[i][1] - c[1]) <= sep) { ok = false; break; }
-          }
-          if (ok) ctr.push(c);
-        }
-        pts = [];
-        ctr.forEach(function (c, gi) {
-          var s = Math.min(w, h) * rnd(0.085, 0.125);
-          for (var i = 0; i < 48; i++) {
-            pts.push({ x: c[0] + gauss() * s, y: c[1] + gauss() * s, g: gi, c: algo === "kmeans" ? -1 : gi, mix: 0, sv: false });
-          }
-        });
-        if (algo === "kmeans") {
-          /* k-means++ seeding: spread initial centroids ∝ squared distance */
-          cents = [];
-          var first = pts[(Math.random() * pts.length) | 0];
-          var seeds = [[first.x, first.y]];
-          while (seeds.length < K) {
-            var d2 = pts.map(function (p) {
-              var m = 1e18;
-              for (var si = 0; si < seeds.length; si++) {
-                var dx = p.x - seeds[si][0], dy = p.y - seeds[si][1];
-                m = Math.min(m, dx * dx + dy * dy);
-              }
-              return m;
-            });
-            var total = d2.reduce(function (a, b) { return a + b; }, 0);
-            var r = Math.random() * total, pick = 0;
-            for (var di = 0; di < d2.length; di++) { r -= d2[di]; if (r <= 0) { pick = di; break; } }
-            seeds.push([pts[pick].x, pts[pick].y]);
-          }
-          seeds.forEach(function (s) {
-            cents.push({ x: s[0], y: s[1], fx: s[0], fy: s[1], tx: s[0], ty: s[1], trail: [] });
-          });
-          scene = { cents: cents };
-        } else {
-          scene = { cents: ctr.map(function (c) { return { x: c[0], y: c[1] }; }) };
-        }
-        if (algo === "softmax" || algo === "svm") {
-          W = [];
-          for (var k = 0; k < K; k++) W.push([rnd(-1, 1), rnd(-1, 1), rnd(-0.3, 0.3)]);
-          epoch = 0; acc = 0; svCount = 0;
-        }
-        if (algo === "knn") { kNow = 1; kStepT = 0; }
-        if (algo === "tree") { tree = buildTree(); depthNow = 1; depthT = 0; }
-        iter = 0; moved = 1e9; regFade = 0;
-        var mx = 0, my = 0;
-        for (var ci = 0; ci < ctr.length; ci++) { mx += ctr[ci][0]; my += ctr[ci][1]; }
-        dataC = { x: mx / ctr.length, y: my / ctr.length };
-        dataR = 0;
-        for (var pi = 0; pi < pts.length; pi++) {
-          dataR = Math.max(dataR, Math.hypot(pts[pi].x - dataC.x, pts[pi].y - dataC.y));
-        }
-        dataR += Math.min(w, h) * 0.14;
-        phase = "in"; t0 = performance.now();
-      };
-
-      var fit = function () {
-        w = window.innerWidth; h = window.innerHeight;
-        var DPR = Math.min(window.devicePixelRatio || 1, 2);
-        canvas.width = Math.round(w * DPR); canvas.height = Math.round(h * DPR);
-        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-        layers = [];
-        for (var k = 0; k < K; k++) {
-          var cv = document.createElement("canvas");
-          cv.width = w; cv.height = h;
-          layers.push({ cv: cv, ctx: cv.getContext("2d") });
-        }
-        newRound();
-      };
-
-      /* ---- k-means helpers ---- */
-      var assign = function () {
-        for (var i = 0; i < pts.length; i++) {
-          var p = pts[i];
-          var bi = 0, bd = 1e18;
-          for (var k = 0; k < cents.length; k++) {
-            var d = (p.x - cents[k].x) * (p.x - cents[k].x) + (p.y - cents[k].y) * (p.y - cents[k].y);
-            if (d < bd) { bd = d; bi = k; }
-          }
-          if (p.c !== bi) { p.c = bi; p.mix = 0; }
-        }
-      };
-      var setTargets = function () {
-        var mv = 0;
-        for (var k = 0; k < cents.length; k++) {
-          var sx = 0, sy = 0, n = 0;
-          for (var i = 0; i < pts.length; i++) {
-            if (pts[i].c === k) { sx += pts[i].x; sy += pts[i].y; n++; }
-          }
-          var c = cents[k];
-          c.fx = c.x; c.fy = c.y;
-          c.tx = n ? sx / n : c.x; c.ty = n ? sy / n : c.y;
-          c.trail.push([c.x, c.y]);
-          mv = Math.max(mv, Math.hypot(c.tx - c.fx, c.ty - c.fy));
-        }
-        return mv;
-      };
-      var ease = function (u) { return u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2; };
-
-      /* ---- canvas-side hover (nearest cluster anchor within 170px) ---- */
-      window.addEventListener("pointermove", function (e) {
-        /* touch "moves" are taps/scrolls, not hover — they'd freeze the
-           highlight at the last touched point */
-        if (e.pointerType !== "mouse" || !hoverMq.matches) { canvasHover = null; return; }
-        if (!scene || !scene.cents.length) return;
-        var x = e.clientX, y = e.clientY;
-        var best = null, bd = 1e18;
-        for (var k = 0; k < scene.cents.length; k++) {
-          var d = Math.hypot(scene.cents[k].x - x, scene.cents[k].y - y);
-          if (d < bd) { bd = d; best = k; }
-        }
-        canvasHover = bd < 170 ? best : null;
-      }, { passive: true });
-      document.addEventListener("pointerleave", function () { canvasHover = null; });
-
-      /* ---- touch: tap the canvas to flash the nearest cluster + its link.
-         Taps on the links/buttons themselves are left alone, and a drag
-         (scroll) is ignored. The flash rides the same hover pipeline. ---- */
-      var flashK = null, flashUntil = 0, tapX = 0, tapY = 0;
-      window.addEventListener("pointerdown", function (e) {
-        if (e.pointerType === "mouse") return;
-        tapX = e.clientX; tapY = e.clientY;
-      }, { passive: true });
-      window.addEventListener("pointerup", function (e) {
-        if (e.pointerType === "mouse") return;
-        if (Math.hypot(e.clientX - tapX, e.clientY - tapY) > 12) return; /* scroll, not tap */
-        if (e.target && e.target.closest && e.target.closest("a, button, .links")) return;
-        if (!scene || !scene.cents.length) return;
-        var best = null, bd = 1e18;
-        for (var k = 0; k < scene.cents.length; k++) {
-          var d = Math.hypot(scene.cents[k].x - e.clientX, scene.cents[k].y - e.clientY);
-          if (d < bd) { bd = d; best = k; }
-        }
-        if (bd < 200) { flashK = best; flashUntil = performance.now() + 1400; }
-        else flashUntil = 0; /* tap on empty space clears an active flash */
-      }, { passive: true });
-
-      /* ---- drawing ---- */
-      var hoverK = function () {
-        if (linkHover != null) return linkHover;
-        if (canvasHover != null) return canvasHover;
-        return flashK != null && performance.now() < flashUntil ? flashK : null;
-      };
-
-      var drawFrame = function () {
-        var T = cur();
-        var hk = hoverK();
-        ctx.fillStyle = T.bg;
-        ctx.fillRect(0, 0, w, h);
-
-        if (algo !== "kmeans" && layers && regFade > 0.015) {
-          var RA = isDark() ? [0.20, 0.34, 0.10] : [0.15, 0.27, 0.07];
-          for (var k = 0; k < K; k++) {
-            ctx.globalAlpha = alpha * regFade * (hk == null ? RA[0] : hk === k ? RA[1] : RA[2]);
-            ctx.drawImage(layers[k].cv, 0, 0, w, h);
-          }
-          ctx.globalAlpha = 1;
-        }
-
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        for (var i = 0; i < pts.length; i++) {
-          var p = pts[i];
-          var col = p.c < 0 ? T.gray : mixc(T.gray, T.pal[p.c], p.mix);
-          var lit = hk != null && p.c === hk;
-          var dim = hk != null && p.c !== hk;
-          ctx.fillStyle = "rgba(" + col[0] + "," + col[1] + "," + col[2] + "," + (dim ? 0.15 : lit ? 0.95 : 0.75) + ")";
-          ctx.beginPath(); ctx.arc(p.x, p.y, lit ? 3.2 : 2.6, 0, 6.2832); ctx.fill();
-          if (algo === "svm" && p.sv && (phase === "hold" || phase === "out")) {
-            ctx.strokeStyle = "rgba(" + T.ring + "," + (dim ? 0.2 : 0.55) + ")";
-            ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, 6.2832); ctx.stroke();
-          }
-        }
-        if (algo === "kmeans") {
-          for (var k2 = 0; k2 < cents.length; k2++) {
-            var c = cents[k2], ccol = T.pal[k2];
-            var cdim = hk != null && k2 !== hk;
-            if (c.trail.length) {
-              ctx.strokeStyle = "rgba(" + ccol[0] + "," + ccol[1] + "," + ccol[2] + "," + (cdim ? 0.12 : 0.35) + ")";
-              ctx.lineWidth = 1;
-              ctx.setLineDash([3, 3]);
-              ctx.beginPath();
-              ctx.moveTo(c.trail[0][0], c.trail[0][1]);
-              for (var q = 0; q < c.trail.length; q++) ctx.lineTo(c.trail[q][0], c.trail[q][1]);
-              ctx.lineTo(c.x, c.y);
-              ctx.stroke();
-              ctx.setLineDash([]);
-            }
-            ctx.strokeStyle = "rgba(" + ccol[0] + "," + ccol[1] + "," + ccol[2] + "," + (cdim ? 0.30 : 0.95) + ")";
-            ctx.lineWidth = hk === k2 ? 2.5 : 2;
-            ctx.beginPath(); ctx.arc(c.x, c.y, hk === k2 ? 9 : 6.5, 0, 6.2832); ctx.stroke();
-            ctx.fillStyle = T.ink;
-            ctx.beginPath(); ctx.arc(c.x, c.y, 1.5, 0, 6.2832); ctx.fill();
-          }
-        }
-        ctx.restore();
-      };
-
-      /* engine-driven link colorizing: brightens the hovered cluster's link
-         and mutes the rest; cleared (-> CSS takes over) when nothing hovers */
-      var applyLinkColors = function () {
-        var hk = hoverK();
-        for (var k = 0; k < K; k++) {
-          var el = clusterEls[k];
+    const gallery = createGallery(canvas, {
+      theme: isDark() ? "dark" : "light",
+      /* keep the data clouds right of the text column on wide screens */
+      placement: (w, h) => {
+        const wide = w / h > 1.15;
+        return { x: wide ? [0.52, 0.90] : [0.12, 0.88], y: [0.16, 0.84], sep: wide ? 0.17 : 0.21 };
+      },
+      tapIgnore: "a, button, .links",
+      onStatus: (label) => {
+        if (algoEl) algoEl.textContent = label;
+      },
+      /* brighten the hovered cluster's link and mute the rest;
+         cleared (-> CSS takes over) when nothing hovers */
+      onHover: (hk) => {
+        for (let k = 0; k < clusterEls.length; k++) {
+          const el = clusterEls[k];
           if (!el) continue;
-          var dot = el.querySelector(".dot");
+          const dot = el.querySelector(".dot");
           if (hk === k) {
             el.style.color = "var(--c" + k + ")";
             if (dot) dot.style.transform = "scale(1.6)";
@@ -1029,146 +629,24 @@
             if (dot) dot.style.transform = "";
           }
         }
-      };
+      },
+    });
 
-      var setLabel = function () {
-        var label;
-        if (algo === "kmeans") label = "k-means++ · k = 5 · iter " + pad(iter, 2);
-        else if (algo === "softmax") label = "softmax regression · epoch " + pad(epoch, 3) + " · acc " + acc.toFixed(2);
-        else if (algo === "svm") label = "linear svm (ovr) · epoch " + pad(epoch, 4) + (svCount ? " · sv " + svCount : "");
-        else if (algo === "knn") label = "k-nn · k = " + kNow + " · 240 samples";
-        else label = "decision tree · depth " + depthNow + " · gini";
-        if (algoEl && algoEl.textContent !== label) algoEl.textContent = label;
-      };
+    /* link → cluster hover */
+    const hoverMq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    clusterEls.forEach((el, k) => {
+      el.addEventListener("mouseenter", () => { if (hoverMq.matches) gallery.setHover(k); });
+      el.addEventListener("mouseleave", () => gallery.setHover(null));
+    });
 
-      /* ---- main loop ---- */
-      var rafId = null, last = 0;
-      var tick = function (now) {
-        var dt = Math.min(0.05, (now - last) / 1000); last = now;
-
-        if (phase === "in") {
-          alpha = Math.min(1, (now - t0) / 900);
-          if (alpha >= 1) {
-            t0 = now;
-            if (algo === "kmeans") { assign(); phase = "assign"; }
-            else {
-              phase = "run";
-              lastRegion = 0;
-              if (algo === "knn") { renderLayers(); kStepT = now; }
-              if (algo === "tree") { renderLayers(); depthT = now; }
-            }
-          }
-        } else if (phase === "assign") {
-          if (now - t0 > 900) { moved = setTargets(); phase = "move"; t0 = now; }
-        } else if (phase === "move") {
-          var u = Math.min(1, (now - t0) / 1000), e = ease(u);
-          for (var ci = 0; ci < cents.length; ci++) {
-            var c = cents[ci];
-            c.x = c.fx + (c.tx - c.fx) * e; c.y = c.fy + (c.ty - c.fy) * e;
-          }
-          if (u >= 1) {
-            iter++;
-            if (iter >= 9 || moved < Math.min(w, h) * 0.004) { phase = "hold"; t0 = now; }
-            else { assign(); phase = "assign"; t0 = now; }
-          }
-        } else if (phase === "run") {
-          if (algo === "softmax" || algo === "svm") {
-            (algo === "softmax" ? stepSoftmax : stepSvm)();
-            epoch++;
-            if (algo === "svm") { stepSvm(); epoch++; } /* 2 epochs/frame */
-            if (now - lastRegion > 70) { renderLayers(); lastRegion = now; }
-            if (epoch % 5 === 0) acc = calcAcc();
-            var done = algo === "svm"
-              ? epoch >= 1200 /* margin scale needs convergence, not argmax acc */
-              : epoch >= 800 || (epoch > 200 && acc >= 0.99);
-            if (done) {
-              acc = calcAcc();
-              if (algo === "svm") markSVs();
-              renderLayers();
-              phase = "hold"; t0 = now;
-            }
-          } else if (algo === "knn") {
-            if (now - kStepT > 1200) {
-              if (kNow >= 9) { phase = "hold"; t0 = now; }
-              else { kNow += 2; renderLayers(); kStepT = now; }
-            }
-          } else {
-            if (now - depthT > 1300) {
-              if (depthNow >= 3) { phase = "hold"; t0 = now; }
-              else { depthNow++; renderLayers(); depthT = now; }
-            }
-          }
-        } else if (phase === "hold") {
-          if (now - t0 > 3600) { phase = "out"; t0 = now; }
-        } else {
-          alpha = Math.max(0, 1 - (now - t0) / 600);
-          if (alpha <= 0) newRound();
-        }
-        for (var pi = 0; pi < pts.length; pi++) pts[pi].mix = Math.min(1, pts[pi].mix + dt * 2.2);
-
-        var regTarget = (algo !== "kmeans" && phase !== "in") ? 1 : 0;
-        regFade += (regTarget - regFade) * Math.min(1, dt * 1.6);
-
-        drawFrame();
-        applyLinkColors();
-        setLabel();
-        rafId = requestAnimationFrame(tick);
-      };
-      var start = function () {
-        if (rafId == null && !reduced) {
-          last = performance.now();
-          rafId = requestAnimationFrame(tick);
-        }
-      };
-      var stop = function () {
-        if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; }
-      };
-
-      /* ---- reduced motion: a single static, fully-converged k-means frame.
-         Link hover stays alive via the CSS :hover rules. ---- */
-      var staticScene = function () {
-        algoIdx = 0;
-        newRound(); /* k-means */
-        for (var it = 0; it < 9; it++) {
-          assign();
-          var mv = setTargets();
-          for (var ci = 0; ci < cents.length; ci++) {
-            cents[ci].x = cents[ci].tx; cents[ci].y = cents[ci].ty;
-          }
-          iter++;
-          if (mv < Math.min(w, h) * 0.004) break;
-        }
-        for (var pi = 0; pi < pts.length; pi++) pts[pi].mix = 1;
-        alpha = 1; phase = "hold";
-        drawFrame();
-        setLabel();
-      };
-
-      function themeChanged() {
-        renderLayers();
-        if (reduced) drawFrame();
-      }
-
-      if (motionMq.addEventListener) {
-        motionMq.addEventListener("change", function () {
-          reduced = motionMq.matches;
-          if (reduced) { stop(); staticScene(); }
-          else { algoIdx = 0; fit(); start(); }
-        });
-      }
-
-      window.addEventListener("resize", function () {
-        var nw = window.innerWidth, nh = window.innerHeight;
-        /* ignore mobile URL-bar height jitter — only re-round on real resizes */
-        if (nw === w && Math.abs(nh - h) < 120) return;
-        fit();
-        if (reduced) staticScene();
+    /* theme: follow the toggle (data-theme attribute) and system changes */
+    new MutationObserver(() => gallery.setTheme(isDark() ? "dark" : "light"))
+      .observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+    if (schemeMq.addEventListener) {
+      schemeMq.addEventListener("change", () => {
+        if (!root.getAttribute("data-theme")) gallery.setTheme(isDark() ? "dark" : "light");
       });
-
-      fit();
-      if (reduced) staticScene();
-      else start();
-    })();
+    }
   </script>
 </body>
 </html>
