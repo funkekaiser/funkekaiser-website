@@ -8,12 +8,6 @@ on:
       - "impressum.html"
       - "404.html"
       - "_headers"
-  pull_request:
-    paths:
-      - "index.html"
-      - "impressum.html"
-      - "404.html"
-      - "_headers"
 
 jobs:
   validate-hashes:
@@ -32,14 +26,3 @@ jobs:
       - name: Validate CSP hashes
         run: python3 update.py validate
 
-      - name: Add comment on failure (pull_request only)
-        if: failure() && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '❌ **CSP hashes are out of date!**\n\nInline scripts have changed but the `_headers` file was not updated.\n\nTo fix this locally, run:\n```bash\npython3 update.py hashes\n```\n\nThen commit and push the updated `_headers` file.'
-            })
