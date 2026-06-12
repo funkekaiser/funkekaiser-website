@@ -42,7 +42,6 @@
   "@type": "Person",
   "name": "Jonathan Funke-Kaiser",
   "url": "https://funkekaiser.com/",
-  "email": "jonathan@funkekaiser.com",
   "sameAs": [
     "https://github.com/funkekaiser",
     "https://www.linkedin.com/in/funkekaiser/"
@@ -233,9 +232,10 @@
     align-items: center;
     gap: 6px;
     font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 12px;
-    letter-spacing: 0.2em;
-    color: var(--faint);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    color: var(--weak);
   }
   .eyebrow .hello { margin-left: 8px; }
   .eyebrow .dot { width: 7px; height: 7px; }
@@ -302,8 +302,9 @@
   .link-value {
     margin-left: auto;
     font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 11.5px;
-    color: var(--faint);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--weak);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -315,12 +316,21 @@
     color: var(--faint);
   }
   /* two-way hover: CSS covers the link side (and keyboard focus, and the
-     reduced-motion path); the canvas engine layers cluster dimming on top */
-  .link[data-cluster="0"]:hover, .link[data-cluster="0"]:focus-within { color: var(--c0); }
-  .link[data-cluster="1"]:hover, .link[data-cluster="1"]:focus-within { color: var(--c1); }
-  .link[data-cluster="2"]:hover, .link[data-cluster="2"]:focus-within { color: var(--c2); }
-  .link[data-cluster="3"]:hover, .link[data-cluster="3"]:focus-within { color: var(--c3); }
-  .link:hover .dot, .link:focus-within .dot { transform: scale(1.6); }
+     reduced-motion path); the canvas engine layers cluster dimming on top.
+     Hover rules only apply on hover-capable pointers — on touch they'd
+     stick after a tap. Keyboard :focus-within stays on for everyone. */
+  .link[data-cluster="0"]:focus-within { color: var(--c0); }
+  .link[data-cluster="1"]:focus-within { color: var(--c1); }
+  .link[data-cluster="2"]:focus-within { color: var(--c2); }
+  .link[data-cluster="3"]:focus-within { color: var(--c3); }
+  .link:focus-within .dot { transform: scale(1.6); }
+  @media (hover: hover) and (pointer: fine) {
+    .link[data-cluster="0"]:hover { color: var(--c0); }
+    .link[data-cluster="1"]:hover { color: var(--c1); }
+    .link[data-cluster="2"]:hover { color: var(--c2); }
+    .link[data-cluster="3"]:hover { color: var(--c3); }
+    .link:hover .dot { transform: scale(1.6); }
+  }
 
   /* ---------- email row: stretched link + copy button ---------- */
   .stretch {
@@ -357,7 +367,7 @@
     bottom: clamp(1.4rem, 4vh, 2.2rem);
     z-index: 1;
     font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 10.5px;
+    font-size: 11px;
     letter-spacing: 0.04em;
     color: var(--faint);
   }
@@ -374,7 +384,7 @@
     bottom: clamp(1.4rem, 4vh, 2.2rem);
     z-index: 1;
     font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 10.5px;
+    font-size: 11px;
     letter-spacing: 0.04em;
     color: var(--faint);
   }
@@ -388,9 +398,75 @@
     .readout { display: none; }
   }
 </style>
+<style>
+  /* ---------- final touches ----------
+     Plot grid (masked off the text column), film grain, legend chip,
+     text scrim, and touch-input gating. Appended as one block so the
+     diff against the previous version stays reviewable. */
+  :root { --grid-minor: rgba(27,27,25,0.035); --grid-major: rgba(27,27,25,0.065); }
+  :root[data-theme="dark"] { --grid-minor: rgba(236,234,228,0.04); --grid-major: rgba(236,234,228,0.075); }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) { --grid-minor: rgba(236,234,228,0.04); --grid-major: rgba(236,234,228,0.075); }
+  }
+  .grid-layer {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background-image:
+      linear-gradient(var(--grid-major) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+      linear-gradient(var(--grid-minor) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
+    background-size: 224px 224px, 224px 224px, 56px 56px, 56px 56px;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0px, transparent 620px, black 880px);
+    mask-image: linear-gradient(90deg, transparent 0px, transparent 620px, black 880px);
+    transition: opacity 0.4s ease;
+  }
+  .grain {
+    position: fixed; inset: 0; z-index: 3; pointer-events: none;
+    background-image: url("images/noise.svg");
+    background-size: 160px 160px;
+    opacity: 0.055; mix-blend-mode: multiply;
+  }
+  :root[data-theme="dark"] .grain { mix-blend-mode: screen; opacity: 0.045; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) .grain { mix-blend-mode: screen; opacity: 0.045; }
+  }
+  .readout {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 13px;
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bg) 72%, transparent);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: background 0.4s ease, border-color 0.4s ease;
+  }
+  .legend-dots { display: flex; align-items: center; gap: 5px; }
+  .legend-dots .ld { width: 5px; height: 5px; border-radius: 50%; flex: none; }
+  .ld.c0 { background: var(--c0); } .ld.c1 { background: var(--c1); }
+  .ld.c2 { background: var(--c2); } .ld.c3 { background: var(--c3); }
+  .ld.c4 { background: var(--c4); }
+
+  .text-scrim {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: linear-gradient(90deg,
+      color-mix(in srgb, var(--bg) 75%, transparent) 0px,
+      color-mix(in srgb, var(--bg) 75%, transparent) 560px,
+      transparent 780px);
+    transition: background 0.4s ease;
+  }
+  @media (max-width: 920px) { .legend-dots { display: none; } }
+
+  @media (max-width: 800px) {
+    .readout { bottom: calc(clamp(1.4rem, 4vh, 2.2rem) + 34px); }
+  }
+  @media (max-width: 560px) { .readout { display: none; } }
+</style>
 </head>
 <body>
   <canvas id="viz" aria-hidden="true"></canvas>
+  <div class="grid-layer" aria-hidden="true"></div>
+  <div class="text-scrim" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
 
   <button class="theme-btn" id="theme-btn" type="button" aria-label="Toggle color scheme">
     <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
@@ -444,14 +520,14 @@
   </main>
 
   <footer>© <span id="year"></span> Jonathan Funke-Kaiser<span class="footer-sep">·</span><a href="impressum.html" data-cluster="4">Impressum &amp; Datenschutz</a></footer>
-  <div class="readout" aria-hidden="true"><span id="algo-label">k-means++ · k = 5 · iter 00</span></div>
+  <div class="readout" aria-hidden="true"><span class="legend-dots"><span class="ld c0"></span><span class="ld c1"></span><span class="ld c2"></span><span class="ld c3"></span><span class="ld c4"></span></span><span id="algo-label">k-means++ · k = 5 · iter 00</span></div>
 
   <!-- theme toggle + copy email + classifier-gallery background.
        The background is a rotating gallery of real classifiers trained live
        on freshly spawned 2-D data: k-means++, softmax regression, linear SVM
        (one-vs-rest), k-NN, and a gini decision tree. Each of the five page
        links owns one cluster; hover links↔clusters both ways. -->
-  <script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     (function () {
       "use strict";
       var root = document.documentElement;
@@ -505,8 +581,9 @@
         clusterEls[+el.getAttribute("data-cluster")] = el;
       });
       var linkHover = null, canvasHover = null;
+      var hoverMq = window.matchMedia("(hover: hover) and (pointer: fine)");
       clusterEls.forEach(function (el, k) {
-        el.addEventListener("mouseenter", function () { linkHover = k; });
+        el.addEventListener("mouseenter", function () { if (hoverMq.matches) linkHover = k; });
         el.addEventListener("mouseleave", function () { linkHover = null; });
       });
 
@@ -826,6 +903,9 @@
 
       /* ---- canvas-side hover (nearest cluster anchor within 170px) ---- */
       window.addEventListener("pointermove", function (e) {
+        /* touch "moves" are taps/scrolls, not hover — they'd freeze the
+           highlight at the last touched point */
+        if (e.pointerType !== "mouse" || !hoverMq.matches) { canvasHover = null; return; }
         if (!scene || !scene.cents.length) return;
         var x = e.clientX, y = e.clientY;
         var best = null, bd = 1e18;
@@ -837,8 +917,34 @@
       }, { passive: true });
       document.addEventListener("pointerleave", function () { canvasHover = null; });
 
+      /* ---- touch: tap the canvas to flash the nearest cluster + its link.
+         Taps on the links/buttons themselves are left alone, and a drag
+         (scroll) is ignored. The flash rides the same hover pipeline. ---- */
+      var flashK = null, flashUntil = 0, tapX = 0, tapY = 0;
+      window.addEventListener("pointerdown", function (e) {
+        if (e.pointerType === "mouse") return;
+        tapX = e.clientX; tapY = e.clientY;
+      }, { passive: true });
+      window.addEventListener("pointerup", function (e) {
+        if (e.pointerType === "mouse") return;
+        if (Math.hypot(e.clientX - tapX, e.clientY - tapY) > 12) return; /* scroll, not tap */
+        if (e.target && e.target.closest && e.target.closest("a, button, .links")) return;
+        if (!scene || !scene.cents.length) return;
+        var best = null, bd = 1e18;
+        for (var k = 0; k < scene.cents.length; k++) {
+          var d = Math.hypot(scene.cents[k].x - e.clientX, scene.cents[k].y - e.clientY);
+          if (d < bd) { bd = d; best = k; }
+        }
+        if (bd < 200) { flashK = best; flashUntil = performance.now() + 1400; }
+        else flashUntil = 0; /* tap on empty space clears an active flash */
+      }, { passive: true });
+
       /* ---- drawing ---- */
-      var hoverK = function () { return linkHover != null ? linkHover : canvasHover; };
+      var hoverK = function () {
+        if (linkHover != null) return linkHover;
+        if (canvasHover != null) return canvasHover;
+        return flashK != null && performance.now() < flashUntil ? flashK : null;
+      };
 
       var drawFrame = function () {
         var T = cur();
@@ -857,11 +963,6 @@
 
         ctx.save();
         ctx.globalAlpha = alpha;
-        if (hk != null && scene && scene.cents[hk]) {
-          var hc = scene.cents[hk], hcol = T.pal[hk];
-          ctx.fillStyle = "rgba(" + hcol[0] + "," + hcol[1] + "," + hcol[2] + ",0.07)";
-          ctx.beginPath(); ctx.arc(hc.x, hc.y, Math.min(w, h) * 0.17, 0, 6.2832); ctx.fill();
-        }
         for (var i = 0; i < pts.length; i++) {
           var p = pts[i];
           var col = p.c < 0 ? T.gray : mixc(T.gray, T.pal[p.c], p.mix);
