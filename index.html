@@ -663,7 +663,8 @@
         for (var k2 = 0; k2 < K; k2++) for (var j = 0; j < 3; j++) W[k2][j] -= (lr * G[k2][j]) / n;
       };
       var stepSvm = function () {
-        var lr = 0.08, lam = 0.002, n = pts.length;
+        var lam = 0.0005, n = pts.length;
+        var lr = Math.min(2, 1 / (lam * (epoch + 1))); /* Pegasos schedule */
         var G = W.map(function (wk) { return wk.map(function (v) { return lam * v; }); });
         for (var i = 0; i < n; i++) {
           var p = pts[i];
@@ -1026,7 +1027,7 @@
         var label;
         if (algo === "kmeans") label = "k-means++ · k = 5 · iter " + pad(iter, 2);
         else if (algo === "softmax") label = "softmax regression · epoch " + pad(epoch, 3) + " · acc " + acc.toFixed(2);
-        else if (algo === "svm") label = "linear svm (ovr) · epoch " + pad(epoch, 3) + (svCount ? " · sv " + svCount : "");
+        else if (algo === "svm") label = "linear svm (ovr) · epoch " + pad(epoch, 4) + (svCount ? " · sv " + svCount : "");
         else if (algo === "knn") label = "k-nn · k = " + kNow + " · 240 samples";
         else label = "decision tree · depth " + depthNow + " · gini";
         if (algoEl && algoEl.textContent !== label) algoEl.textContent = label;
@@ -1066,9 +1067,13 @@
           if (algo === "softmax" || algo === "svm") {
             (algo === "softmax" ? stepSoftmax : stepSvm)();
             epoch++;
+            if (algo === "svm") { stepSvm(); epoch++; } /* 2 epochs/frame */
             if (now - lastRegion > 70) { renderLayers(); lastRegion = now; }
             if (epoch % 5 === 0) acc = calcAcc();
-            if (epoch >= 420 || (epoch > 200 && acc >= 0.99)) {
+            var done = algo === "svm"
+              ? epoch >= 1200 /* margin scale needs convergence, not argmax acc */
+              : epoch >= 800 || (epoch > 200 && acc >= 0.99);
+            if (done) {
               acc = calcAcc();
               if (algo === "svm") markSVs();
               renderLayers();
