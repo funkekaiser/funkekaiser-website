@@ -1,0 +1,3 @@
+[submodule "vendor/ml-on-canvas"]
+	path = vendor/ml-on-canvas
+	url = https://github.com/funkekaiser/ml-on-canvas
