@@ -9,7 +9,13 @@ A simple single-page personal landing for Jonathan Funke-Kaiser. The hero shows 
 - **Self-contained** – Each page carries its own inlined CSS/JS with no runtime dependencies. Fonts (Geist, Geist Mono) are self-hosted as `woff2` — no external CDN — for speed and EU/GDPR compliance.
 
 ## Build
-There is no build step. The site is static HTML — edit a file and refresh.
+`update.py` manages fonts and CSP hashes:
+```
+python3 update.py all       # Update fonts + hashes
+python3 update.py fonts     # Restore/download fonts only
+python3 update.py hashes    # Update CSP hashes only
+python3 update.py validate  # Check hashes (read-only)
+```
 
 ## Local development
 Open `index.html` directly in a browser, or serve the folder with any static server:
