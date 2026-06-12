@@ -263,18 +263,23 @@
   }
   .note p { color: var(--text); }
 
-  /* ---------- fine grid texture ---------- */
+  /* ---------- plot grid (same as index) ---------- */
+  :root { --grid-minor: rgba(27,27,25,0.035); --grid-major: rgba(27,27,25,0.065); }
+  :root[data-theme="dark"] { --grid-minor: rgba(236,234,228,0.04); --grid-major: rgba(236,234,228,0.075); }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) { --grid-minor: rgba(236,234,228,0.04); --grid-major: rgba(236,234,228,0.075); }
+  }
   .grid {
     position: fixed;
     inset: 0;
     z-index: 0;
     pointer-events: none;
     background-image:
-      linear-gradient(color-mix(in oklch, currentColor 4%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in oklch, currentColor 4%, transparent) 1px, transparent 1px);
-    background-size: 56px 56px;
-    -webkit-mask-image: radial-gradient(120% 120% at 50% 50%, #000 20%, transparent 80%);
-    mask-image: radial-gradient(120% 120% at 50% 50%, #000 20%, transparent 80%);
+      linear-gradient(var(--grid-major) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+      linear-gradient(var(--grid-minor) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
+    background-size: 224px 224px, 224px 224px, 56px 56px, 56px 56px;
   }
 
   footer {
