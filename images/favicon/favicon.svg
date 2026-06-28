@@ -1,5 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a04a31"></stop><stop offset="1" stop-color="#91487d"></stop></linearGradient></defs>
-<rect width="64" height="64" rx="15" fill="url(#g)"></rect>
-<path d="M14.09 45.05L9.17 45.05L9.17 41.81L13.67 41.81Q14.99 41.81 15.61 41.21Q16.22 40.61 16.22 39.23L16.22 39.23L16.22 27.71L9.32 27.71L9.32 24.47L20.3 24.47L20.3 39.35Q20.3 42.14 18.74 43.6Q17.18 45.05 14.09 45.05L14.09 45.05ZM20.3 22.49L16.16 22.49L16.16 18.95L20.3 18.95L20.3 22.49ZM30.75 40.55L26.7 40.55L26.7 27.71L22.65 27.71L22.65 24.47L26.7 24.47L26.7 24.02Q26.7 21.59 27.86 20.42Q29.01 19.25 31.5 19.25L31.5 19.25L36.81 19.25L36.81 22.49L32.43 22.49Q31.56 22.49 31.16 22.9Q30.75 23.3 30.75 24.05L30.75 24.05L30.75 24.47L36.69 24.47L36.69 27.71L30.75 27.71L30.75 40.55ZM43.61 40.55L39.53 40.55L39.53 19.25L43.61 19.25L43.61 31.49L49.73 24.47L54.56 24.47L48.44 31.34L54.83 40.55L50.18 40.55L45.77 33.98L43.61 36.35L43.61 40.55Z" fill="#f4f4f1"></path>
+<style>
+  .bg{fill:#f4f4f1}
+  .c1{fill:#4763ad} .c2{fill:#2f7a4e} .c3{fill:#a04a31} .c4{fill:#7c662a} .c5{fill:#91487d}
+  .ring{fill:none; stroke:#a04a31; stroke-width:1.4; opacity:.5}
+  @media (prefers-color-scheme: dark){
+    .bg{fill:#1b1b19}
+    .c1{fill:#84a0e8} .c2{fill:#67ad85} .c3{fill:#d4805f} .c4{fill:#c7a35c} .c5{fill:#ca80b6}
+    .ring{stroke:#d4805f; opacity:.45}
+  }
+</style>
+<rect class="bg" width="64" height="64" rx="14"></rect>
+<circle class="c1" cx="20" cy="23" r="6.5"></circle>
+<circle class="c2" cx="33" cy="17" r="5"></circle>
+<circle class="c3" cx="45" cy="27" r="7"></circle>
+<circle class="c4" cx="23" cy="42" r="7"></circle>
+<circle class="c5" cx="42" cy="46" r="5.5"></circle>
+<circle class="ring" cx="45" cy="27" r="11.5"></circle>
 </svg>
