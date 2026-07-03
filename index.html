@@ -195,7 +195,7 @@
     display: grid;
     place-items: center;
     border: 1px solid var(--hairline);
-    border-radius: 10px;
+    border-radius: 999px; /* pill, matching the readout */
     background: transparent;
     color: var(--faint);
     cursor: pointer;
@@ -302,7 +302,7 @@
   .link-value {
     margin-left: auto;
     font-family: "Geist Mono", ui-monospace, monospace;
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 500;
     color: var(--weak);
     overflow: hidden;
@@ -314,6 +314,7 @@
     font-family: "Geist Mono", ui-monospace, monospace;
     font-size: 13px;
     color: var(--faint);
+    transition: transform 0.2s ease, color 0.2s ease;
   }
   /* two-way hover: CSS covers the link side (and keyboard focus, and the
      reduced-motion path); the canvas engine layers cluster dimming on top.
@@ -324,12 +325,14 @@
   .link[data-cluster="2"]:focus-within { color: var(--c2); }
   .link[data-cluster="3"]:focus-within { color: var(--c3); }
   .link:focus-within .dot { transform: scale(1.6); }
+  .link:focus-within .arrow { transform: translate(3px, -3px); color: inherit; }
   @media (hover: hover) and (pointer: fine) {
     .link[data-cluster="0"]:hover { color: var(--c0); }
     .link[data-cluster="1"]:hover { color: var(--c1); }
     .link[data-cluster="2"]:hover { color: var(--c2); }
     .link[data-cluster="3"]:hover { color: var(--c3); }
     .link:hover .dot { transform: scale(1.6); }
+    .link:hover .arrow { transform: translate(3px, -3px); color: inherit; }
   }
 
   /* ---------- email row: stretched link + copy button ---------- */
@@ -387,6 +390,7 @@
     font-size: 11px;
     letter-spacing: 0.04em;
     color: var(--faint);
+    cursor: pointer;
   }
 
   @media (max-width: 560px) {
@@ -430,6 +434,7 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) .grain { mix-blend-mode: screen; opacity: 0.045; }
   }
+  /* the readout is a real <button>: clicking it skips to the next algorithm */
   .readout {
     display: flex; align-items: center; gap: 10px;
     padding: 7px 13px;
@@ -438,8 +443,9 @@
     background: color-mix(in srgb, var(--bg) 72%, transparent);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
-    transition: background 0.4s ease, border-color 0.4s ease;
+    transition: background 0.4s ease, border-color 0.2s ease, color 0.2s ease;
   }
+  .readout:hover { color: var(--ink); border-color: var(--faint); }
   .legend-dots { display: flex; align-items: center; gap: 5px; }
   .legend-dots .ld { width: 5px; height: 5px; border-radius: 50%; flex: none; }
   .ld.c0 { background: var(--c0); } .ld.c1 { background: var(--c1); }
@@ -520,13 +526,14 @@
   </main>
 
   <footer>© <span id="year"></span> Jonathan Funke-Kaiser<span class="footer-sep">·</span><a href="impressum.html" data-cluster="4">Impressum &amp; Datenschutz</a></footer>
-  <div class="readout" aria-hidden="true"><span class="legend-dots"><span class="ld c0"></span><span class="ld c1"></span><span class="ld c2"></span><span class="ld c3"></span><span class="ld c4"></span></span><span id="algo-label">k-means++ · k = 5 · iter 00</span></div>
+  <button class="readout" id="readout" type="button" aria-label="Show the next algorithm"><span class="legend-dots" aria-hidden="true"><span class="ld c0"></span><span class="ld c1"></span><span class="ld c2"></span><span class="ld c3"></span><span class="ld c4"></span></span><span id="algo-label" aria-hidden="true">k-means++ · k = 5 · iter 00</span></button>
 
   <!-- Two scripts: (1) site chrome — theme toggle, copy email, year.
        (2) a module adapter that wires up the classifier-gallery background:
        a rotating gallery of real classifiers trained live on freshly spawned
        2-D data (k-means++, softmax regression, linear SVM one-vs-rest, k-NN,
-       gini decision tree). The engine lives in vendor/ml-on-canvas — a git
+       a tiny MLP, gini decision tree, GMM via EM). The engine lives in
+       vendor/ml-on-canvas — a git
        submodule of https://github.com/funkekaiser/ml-on-canvas — so engine
        tweaks land here via a submodule bump. Each of the five page links owns
        one cluster; hover links↔clusters both ways. -->
@@ -584,7 +591,7 @@
     })();
   </script>
   <script type="module">
-    import { createGallery } from "/vendor/ml-on-canvas/ml-on-canvas.js";
+    import { createGallery, ALGORITHMS } from "/vendor/ml-on-canvas/ml-on-canvas.js";
 
     const root = document.documentElement;
     const schemeMq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -630,6 +637,12 @@
           }
         }
       },
+    });
+
+    /* readout pill → skip to the next algorithm */
+    document.getElementById("readout").addEventListener("click", () => {
+      const i = ALGORITHMS.indexOf(gallery.getAlgorithm());
+      gallery.setAlgorithm(ALGORITHMS[(i + 1) % ALGORITHMS.length]);
     });
 
     /* link → cluster hover */
