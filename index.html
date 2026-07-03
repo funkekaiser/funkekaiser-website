@@ -381,17 +381,23 @@
   }
   footer a:hover, footer a:focus-visible { color: var(--c4); }
   .footer-sep { opacity: 0.7; margin: 0 0.4em; }
-  .readout {
+  .hud {
     position: fixed;
     right: clamp(2rem, 7vw, 7.5rem);
     bottom: clamp(1.4rem, 4vh, 2.2rem);
     z-index: 1;
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .readout, .src-link {
     font-family: "Geist Mono", ui-monospace, monospace;
     font-size: 11px;
     letter-spacing: 0.04em;
     color: var(--faint);
     cursor: pointer;
   }
+  .src-link { text-decoration: none; }
 
   @media (max-width: 560px) {
     /* let main + footer share the viewport instead of main taking a full
@@ -399,7 +405,7 @@
     body { overflow-y: auto; display: flex; flex-direction: column; min-height: 100svh; }
     main { height: auto; min-height: 0; flex: 1; padding-top: 5rem; padding-bottom: 1.5rem; }
     footer { position: static; margin: 0 0 1.4rem; padding: 0 clamp(2rem, 7vw, 7.5rem); }
-    .readout { display: none; }
+    .hud { display: none; }
   }
 </style>
 <style>
@@ -434,8 +440,9 @@
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme]) .grain { mix-blend-mode: screen; opacity: 0.045; }
   }
-  /* the readout is a real <button>: clicking it skips to the next algorithm */
-  .readout {
+  /* the readout is a real <button>: clicking it skips to the next algorithm.
+     the src-link pill beside it credits the engine repo. */
+  .readout, .src-link {
     display: flex; align-items: center; gap: 10px;
     padding: 7px 13px;
     border: 1px solid var(--hairline);
@@ -445,7 +452,7 @@
     -webkit-backdrop-filter: blur(6px);
     transition: background 0.4s ease, border-color 0.2s ease, color 0.2s ease;
   }
-  .readout:hover { color: var(--ink); border-color: var(--faint); }
+  .readout:hover, .src-link:hover { color: var(--ink); border-color: var(--faint); }
   .legend-dots { display: flex; align-items: center; gap: 5px; }
   .legend-dots .ld { width: 5px; height: 5px; border-radius: 50%; flex: none; }
   .ld.c0 { background: var(--c0); } .ld.c1 { background: var(--c1); }
@@ -463,9 +470,10 @@
   @media (max-width: 920px) { .legend-dots { display: none; } }
 
   @media (max-width: 800px) {
-    .readout { bottom: calc(clamp(1.4rem, 4vh, 2.2rem) + 34px); }
+    /* stack the pills and lift them clear of the static footer line */
+    .hud { bottom: calc(clamp(1.4rem, 4vh, 2.2rem) + 34px); flex-direction: column; align-items: flex-end; }
   }
-  @media (max-width: 560px) { .readout { display: none; } }
+  @media (max-width: 560px) { .hud { display: none; } }
 </style>
 </head>
 <body>
@@ -526,7 +534,10 @@
   </main>
 
   <footer>© <span id="year"></span> Jonathan Funke-Kaiser<span class="footer-sep">·</span><a href="impressum.html" data-cluster="4">Impressum &amp; Datenschutz</a></footer>
-  <button class="readout" id="readout" type="button" aria-label="Show the next algorithm"><span class="legend-dots" aria-hidden="true"><span class="ld c0"></span><span class="ld c1"></span><span class="ld c2"></span><span class="ld c3"></span><span class="ld c4"></span></span><span id="algo-label" aria-hidden="true">k-means++ · k = 5 · iter 00</span></button>
+  <div class="hud">
+    <a class="src-link" href="https://github.com/funkekaiser/ml-on-canvas" target="_blank" rel="noopener" title="The engine behind this background — on GitHub">ml-on-canvas<span class="sr-only"> — the engine behind this background, on GitHub (opens in a new tab)</span> ↗</a>
+    <button class="readout" id="readout" type="button" aria-label="Show the next algorithm"><span class="legend-dots" aria-hidden="true"><span class="ld c0"></span><span class="ld c1"></span><span class="ld c2"></span><span class="ld c3"></span><span class="ld c4"></span></span><span id="algo-label" aria-hidden="true">k-means++ · k = 5 · iter 00</span></button>
+  </div>
 
   <!-- Two scripts: (1) site chrome — theme toggle, copy email, year.
        (2) a module adapter that wires up the classifier-gallery background:
