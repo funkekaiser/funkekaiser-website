@@ -24,7 +24,9 @@ node_modules
 # images
 head-source/
 
-# Fetched from the CurriculumVitae repo's "latest" release at deploy time
+# Was fetched from the CurriculumVitae repo's "latest" release at deploy time.
+# That repo is private now and the page no longer links a CV — kept ignored so a
+# stray local copy can't be committed.
 Jonathan-Funke-Kaiser-CV.pdf
 
 # Local editor / agent config (preview launch.json, etc.)
