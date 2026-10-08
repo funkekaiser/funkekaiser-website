@@ -4,12 +4,12 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Jonathan Funke-Kaiser</title>
-<meta name="description" content="Jonathan Funke-Kaiser — Computer Science student and aspiring data scientist. Find my GitHub, LinkedIn, and contact details here." />
+<meta name="description" content="Jonathan Funke-Kaiser — Computer Science student and aspiring data scientist. Find my tools, GitHub, LinkedIn, and contact details here." />
 <link rel="canonical" href="https://funkekaiser.com/" />
 
 <!-- Social cards -->
 <meta property="og:title" content="Jonathan Funke-Kaiser" />
-<meta property="og:description" content="Jonathan Funke-Kaiser — Computer Science student and aspiring data scientist. Find my GitHub, LinkedIn, and contact details here." />
+<meta property="og:description" content="Jonathan Funke-Kaiser — Computer Science student and aspiring data scientist. Find my tools, GitHub, LinkedIn, and contact details here." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://funkekaiser.com/" />
 <meta property="og:image" content="https://funkekaiser.com/images/og-card.png" />
@@ -105,7 +105,7 @@
     --c0: #a04a31;  /* email · red */
     --c1: #2f7a4e;  /* github · green */
     --c2: #4763ad;  /* linkedin · blue */
-    --c3: #91487d;  /* unlinked · magenta */
+    --c3: #91487d;  /* tools · magenta */
     --c4: #7c662a;  /* impressum · ochre */
   }
   @media (prefers-color-scheme: dark) {
@@ -323,12 +323,14 @@
   .link[data-cluster="0"]:focus-within { color: var(--c0); }
   .link[data-cluster="1"]:focus-within { color: var(--c1); }
   .link[data-cluster="2"]:focus-within { color: var(--c2); }
+  .link[data-cluster="3"]:focus-within { color: var(--c3); }
   .link:focus-within .dot { transform: scale(1.6); }
   .link:focus-within .arrow { transform: translate(3px, -3px); color: inherit; }
   @media (hover: hover) and (pointer: fine) {
     .link[data-cluster="0"]:hover { color: var(--c0); }
     .link[data-cluster="1"]:hover { color: var(--c1); }
     .link[data-cluster="2"]:hover { color: var(--c2); }
+    .link[data-cluster="3"]:hover { color: var(--c3); }
     .link:hover .dot { transform: scale(1.6); }
     .link:hover .arrow { transform: translate(3px, -3px); color: inherit; }
   }
@@ -521,6 +523,13 @@
         <span class="link-value">linkedin.com/in/funkekaiser</span>
         <span class="arrow" aria-hidden="true">↗</span>
       </a>
+
+      <a class="link" data-cluster="3" href="https://tools.jof.dev" target="_blank" rel="noopener">
+        <span class="dot c3" aria-hidden="true"></span>
+        <span class="link-label">Tools<span class="sr-only"> (opens in a new tab)</span></span>
+        <span class="link-value">tools.jof.dev</span>
+        <span class="arrow" aria-hidden="true">↗</span>
+      </a>
     </nav>
   </main>
 
@@ -537,8 +546,8 @@
        a tiny MLP, gini decision tree, GMM via EM). The engine lives in
        vendor/ml-on-canvas — a git
        submodule of https://github.com/funkekaiser/ml-on-canvas — so engine
-       tweaks land here via a submodule bump. Four page links own one cluster
-       each (cluster 3 is unlinked); hover links↔clusters both ways. -->
+       tweaks land here via a submodule bump. Each of the five page links owns
+       one cluster; hover links↔clusters both ways. -->
   <script>
     (function () {
       "use strict";
