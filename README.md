@@ -1,6 +1,6 @@
 # Funke-Kaiser Personal Landing
 
-A simple single-page personal landing for Jonathan Funke-Kaiser. The hero shows a name, tagline, and four links — email, GitHub, LinkedIn, and tools — over a signature animated background: a rotating gallery of real machine-learning classifiers, trained live in the browser on freshly spawned 2-D data.
+A simple single-page personal landing for Jonathan Funke-Kaiser. The hero shows a name, tagline, and three links — email, GitHub, and LinkedIn — over a signature animated background: a rotating gallery of real machine-learning classifiers, trained live in the browser on freshly spawned 2-D data.
 
 ## Features
 - **Live ML classifier gallery** – A `<canvas>` background cycles through seven classifiers trained in real time on freshly generated 2-D point clouds: k-means++, softmax regression, linear SVM (one-vs-rest), k-NN, a tiny MLP, a gini decision tree, and a gaussian mixture fit by EM. A small readout names the current algorithm and iteration — clicking it skips to the next algorithm — and a pill beside it links to the engine repo. Each of the five page links owns one cluster, and hovering a link highlights its cluster (and vice versa). Under `prefers-reduced-motion` it renders a single static, fully-converged frame instead of animating. The engine is its own project — [ml-on-canvas](https://github.com/funkekaiser/ml-on-canvas) — consumed here as a git submodule (`vendor/ml-on-canvas/`) and wired to the page by a small inline adapter in `index.html`.
