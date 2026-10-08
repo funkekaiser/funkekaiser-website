@@ -44,10 +44,12 @@ lets the toggle win in both directions. A tiny pre-paint script in `<head>` read
 key `fk-theme` and stamps `data-theme` before first paint to avoid a flash. New color tokens must be
 defined in all three blocks or the toggle will half-apply.
 
-**Cluster identity ties the links to the canvas.** Each of the five links carries `data-cluster="0"`–
-`"4"` (email, GitHub, LinkedIn, tools, Impressum) and there is a matching `--c0`–`--c4` token pair
-(light/dark). The inline `<script type="module">` at the bottom of `index.html` is the adapter
-between the page and the engine: it maps `[data-cluster]` elements into an array, drives
+**Cluster identity ties the links to the canvas.** The engine draws five clusters with matching
+`--c0`–`--c4` token pairs (light/dark). Four links carry a `data-cluster`: email `"0"`, GitHub `"1"`,
+LinkedIn `"2"`, and the footer Impressum `"4"`. Cluster 3 (magenta) has no link since the tools link
+was removed; the adapter tolerates the gap. The inline `<script type="module">` at the bottom of
+`index.html` is the adapter between the page and the engine: it maps `[data-cluster]` elements into
+an array, drives
 `gallery.setHover(k)` on link hover, and paints the hovered link from `gallery`'s `onHover` callback.
 Adding or removing a link means updating the index range, the `--cN` tokens, and the `:hover` /
 `:focus-within` rules together.
@@ -77,8 +79,8 @@ Cloudflare Pages, no build step, root output directory. Keep `CNAME` (`funkekais
 
 The page used to link a CV PDF that the Pages build command pulled from the CurriculumVitae repo's
 rolling `latest` release. That repo is private now, so the build broke; the link was replaced with
-`https://tools.jof.dev` and `Jonathan-Funke-Kaiser-CV.pdf` stays gitignored. **The build command
-itself lives in the Cloudflare Pages dashboard, not in this repo** — it must be cleared there or
+`https://tools.jof.dev` (since removed too) and `Jonathan-Funke-Kaiser-CV.pdf` stays gitignored.
+**The build command itself lives in the Cloudflare Pages dashboard, not in this repo** — it must be cleared there or
 deploys keep failing on the release download.
 
 ## Re-rendering the social card
